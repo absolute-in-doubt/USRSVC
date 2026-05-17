@@ -1,5 +1,6 @@
-package com.innowise.userservice.domain.entity;
+package com.innowise.userservice.domain.model;
 
+import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,13 +13,18 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor
 public class User {
+
+    private static final int MAX_CARDS_COUNT = 5;
+
     @SequenceGenerator(name = "users_id_gen", sequenceName = "users_id_seq", allocationSize = 50)
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_gen")
     private Long id;
-    private String name;
-    private String surname;
+    @Column(name = "name")
+    private String firstName;
+    @Column(name = "surname")
+    private String lastName;
     @Column(name = "birth_date")
     private LocalDate birthDate;
     private String email;
@@ -28,6 +34,17 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    private int version;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<PaymentCard> cards;
+
+    public void addCard(PaymentCard card) throws MaxPaymentCardsExceededException {
+        if(cards.size() >= MAX_CARDS_COUNT)
+            throw new MaxPaymentCardsExceededException(id);
+
+        cards.add(card);
+        card.setUser(this);
+    }
 }

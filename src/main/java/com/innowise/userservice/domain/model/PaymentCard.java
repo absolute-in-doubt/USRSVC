@@ -1,4 +1,4 @@
-package com.innowise.userservice.domain.entity;
+package com.innowise.userservice.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -31,4 +31,7 @@ public class PaymentCard {
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Version
+    private int version;
 }
