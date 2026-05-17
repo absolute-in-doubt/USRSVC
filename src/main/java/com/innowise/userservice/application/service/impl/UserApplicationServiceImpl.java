@@ -47,8 +47,8 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
-    public void updateUser(UpdateUserDto updateUserDto) throws UserNotFoundException {
-        User user = userRepository.findById(updateUserDto.id()).orElseThrow(() -> new UserNotFoundException(updateUserDto.id()));
+    public void updateUser(UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         userMapper.updateEntity(updateUserDto, user);
         userRepository.save(user);
     }
@@ -108,9 +108,9 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     }
 
     @Recover
-    public void recoverUpdate(Throwable e, UpdateUserDto updateUserDto) throws FailedToPerformOperationException {
-        log.error("Failed to update user with id {} after retries", updateUserDto.id(), e);
-        throw new FailedToPerformOperationException("Unable to update user with id: " + updateUserDto.id());
+    public void recoverUpdate(Throwable e, UpdateUserDto updateUserDto, Long userId) throws FailedToPerformOperationException {
+        log.error("Failed to update user with id {} after retries", userId, e);
+        throw new FailedToPerformOperationException("Unable to update user with id: " + userId);
     }
 
     @Recover

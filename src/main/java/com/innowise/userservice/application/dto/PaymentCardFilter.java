@@ -1,6 +1,8 @@
 package com.innowise.userservice.application.dto;
 
+import jakarta.validation.constraints.Size;
+
 public record PaymentCardFilter(
-        String userFirstName,
-        String userLastName
+        @Size(max = 100) String userFirstName,
+        @Size(max = 100) String userLastName
 ) {}

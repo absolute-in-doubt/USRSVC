@@ -1,10 +1,15 @@
 package com.innowise.userservice.application.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDate;
 
-public record CreateUserDto(String name,
-                            String surname,
-                            LocalDate birthDate,
-                            String email) {
-    //active is automatically set to true when the user is created (in mapper)
+public record CreateUserDto(
+        @NotBlank @Size(max = 100) String name,
+        @NotBlank @Size(max = 100) String surname,
+        @Past LocalDate birthDate,
+        @NotBlank @Email String email) {
 }

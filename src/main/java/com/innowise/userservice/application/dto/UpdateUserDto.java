@@ -1,8 +1,11 @@
 package com.innowise.userservice.application.dto;
 
-public record UpdateUserDto(Long id,
-                           String name,
-                           String surname,
-                           String email,
-                            boolean active) {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+
+public record UpdateUserDto(
+        @Size(max = 100) String name,
+        @Size(max = 100) String surname,
+        @Email String email,
+        boolean active) {
 }

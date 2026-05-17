@@ -10,7 +10,7 @@ public interface UserApplicationService {
 
     void createUser(CreateUserDto createUserDto);
 
-    void updateUser(UpdateUserDto updateUserDto) throws UserNotFoundException;
+    void updateUser(UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException;
 
     void addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException;
 
