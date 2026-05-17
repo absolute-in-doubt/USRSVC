@@ -4,6 +4,7 @@ import com.innowise.userservice.application.dto.*;
 import com.innowise.userservice.application.service.UserApplicationService;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
+import com.innowise.userservice.domain.port.in.UserController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
 @Validated
-public class UserController {
+public class UserControllerImpl implements UserController {
 
     private final UserApplicationService service;
 

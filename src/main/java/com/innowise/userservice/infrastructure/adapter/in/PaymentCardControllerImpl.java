@@ -6,6 +6,7 @@ import com.innowise.userservice.application.dto.PaymentCardResponseDto;
 import com.innowise.userservice.application.dto.UpdatePaymentCardDto;
 import com.innowise.userservice.application.service.PaymentCardApplicationService;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
+import com.innowise.userservice.domain.port.in.PaymentCardController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 @RequestMapping("api/v1/cards")
-public class PaymentCardController {
+public class PaymentCardControllerImpl implements PaymentCardController {
 
     private final PaymentCardApplicationService service;
 
