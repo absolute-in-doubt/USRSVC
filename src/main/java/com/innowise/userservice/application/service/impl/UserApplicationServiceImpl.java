@@ -40,6 +40,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     }
 
     @Override
+    @Transactional
     @Retryable(
             noRetryFor = {DataIntegrityViolationException.class, UserNotFoundException.class},
             notRecoverable = {DataIntegrityViolationException.class, UserNotFoundException.class},
@@ -70,6 +71,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     }
 
     @Override
+    @Transactional
     @Retryable(
             noRetryFor = {DataIntegrityViolationException.class, UserNotFoundException.class},
             notRecoverable = {DataIntegrityViolationException.class, UserNotFoundException.class},
@@ -84,6 +86,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     }
 
     @Override
+    @Transactional
     @Retryable(
             noRetryFor = {DataIntegrityViolationException.class, UserNotFoundException.class},
             notRecoverable = {DataIntegrityViolationException.class, UserNotFoundException.class},
@@ -115,7 +118,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
 
     @Recover
     public void recoverChangeActiveStatus(Throwable e, Long id) throws FailedToPerformOperationException {
-        log.error("Failed to change user status for user with id {} after retries", id, e);
+        log.error("Failed t o change user status for user with id {} after retries", id, e);
         throw new FailedToPerformOperationException("Unable to change user status for user with id: " + id);
     }
 

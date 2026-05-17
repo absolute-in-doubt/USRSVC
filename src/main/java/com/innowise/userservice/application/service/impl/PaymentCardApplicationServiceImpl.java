@@ -75,7 +75,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     public void activateCardById(Long id) throws PaymentCardNotFoundException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         entityManager.lock(paymentCard.getUser(), LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        paymentCard.setActive(false);
+        paymentCard.setActive(true);
     }
 
     @Override
