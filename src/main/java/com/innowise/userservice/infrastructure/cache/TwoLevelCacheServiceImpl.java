@@ -32,15 +32,19 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     private final CacheManager caffeineManager;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper mapper;
+    private final CacheProperties cacheProperties;
 
-    private final AtomicBoolean cacheLoggingOn = new AtomicBoolean(true);
+    private final boolean cacheLoggingOn;
 
     public TwoLevelCacheServiceImpl(CacheManager caffeineManager,
                                     StringRedisTemplate redisTemplate,
-                                    @Lazy ObjectMapper mapper) {
+                                    @Lazy ObjectMapper mapper,
+                                    CacheProperties cacheProperties) {
         this.caffeineManager = caffeineManager;
         this.redisTemplate = redisTemplate;
         this.mapper = mapper;
+        this.cacheProperties = cacheProperties;
+        this.cacheLoggingOn = cacheProperties.logging();
     }
 
     @Override
@@ -50,7 +54,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
         CacheEnvelope<T> l1Result = getL1(cacheName, key);
 
         if(l1Result != null) {
-            if(cacheLoggingOn.get())
+            if(cacheLoggingOn)
                 log.trace("L1 cache hit for {}", l1Result.data());
 
             return l1Result.data(); //may as well return null
@@ -61,12 +65,12 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
             if(l2Result.isFresh()) {
                     T result = l2Result.data();
                     putL1(cacheName, key, l2Result);
-                    if(cacheLoggingOn.get())
+                    if(cacheLoggingOn)
                         log.trace("L2 cache hit for {}", result);
 
                     return result;
             } else { //value exists, but it's stale
-                if(cacheLoggingOn.get())
+                if(cacheLoggingOn)
                     log.trace("L2 cache hit (stale) for {}\nInitiating async update", l2Result.data());
                 CompletableFuture.supplyAsync(() -> {
                     try {
@@ -82,7 +86,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
         // all the caches are missed
         // same thing but synchronously
         T result = loadWithLockAndSecondCheck(cacheName, key,  returnType, dbLoader);
-        if(cacheLoggingOn.get())
+        if(cacheLoggingOn)
             log.trace("Cache miss for {}", result);
         return result;
     }
@@ -90,7 +94,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     @Override
     public void put(String cacheName, String key, Object value) {
             CacheEnvelope<Object> envelope = new CacheEnvelope<>(value, LocalDateTime.now()
-                    .plus(Duration.ofMinutes(CacheConfig.REMOTE_CACHE_STALE_AFTER_MIN)));
+                    .plus(Duration.ofMinutes(cacheProperties.remote().staleAfterMin())));
             putL1(cacheName, key, envelope);
             putL2(cacheName, key, envelope);
 
@@ -166,7 +170,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
             }
 
             T value = dbLoader.get();  //NOTE: even if the DB operation returns null -> wrap it and store as it is to avid czche penetration
-            CacheEnvelope<T> cacheEnvelope = new CacheEnvelope<>(value, LocalDateTime.now().plus(Duration.ofMinutes(CacheConfig.REMOTE_CACHE_STALE_AFTER_MIN)));
+            CacheEnvelope<T> cacheEnvelope = new CacheEnvelope<>(value, LocalDateTime.now().plus(Duration.ofMinutes(cacheProperties.remote().staleAfterMin())));
             put(cacheName, key, value);
             return value;
         } finally{
@@ -183,7 +187,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
 
     private <T> void putL2(String cacheName, String key, CacheEnvelope<T> envelope){
         redisTemplate.opsForValue().set(cacheName + ":" + key, mapper.writeValueAsString(envelope),
-                Duration.ofMinutes(CacheConfig.REMOTE_CACHE_TTL_MIN));
+                Duration.ofMinutes(cacheProperties.remote().ttlMin()));
     }
 
     private void evictL1(String cacheName, String key){

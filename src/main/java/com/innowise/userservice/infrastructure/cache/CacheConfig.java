@@ -1,51 +1,46 @@
 package com.innowise.userservice.infrastructure.cache;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.time.Duration;
 
 @Configuration
+@EnableConfigurationProperties(CacheProperties.class)
+@RequiredArgsConstructor
 public class CacheConfig {
 
-    //TODO move it all away to the constants class
     public static final String PAYMENT_CARDS_CACHE = "payment_cards_cache";
     public static final String USERS_CACHE = "users_cache";
-    public static final int LOCAL_CACHE_MAX_SIZE = 1000;
-    public static final int LOCAL_CACHE_EXPIRATION_MIN = 1;
 
-    public static final int REMOTE_CACHE_STALE_AFTER_MIN = 10;
-    public static final int REMOTE_CACHE_TTL_MIN = 15;
+    private final CacheProperties cacheProperties;
 
     @Bean
     public CacheManager cacheManager() {
+        int maxSize = cacheProperties.local().maxSize();
+        int expirationMin = cacheProperties.local().expirationMin();
 
         Caffeine<Object, Object> users = Caffeine.newBuilder()
-                .maximumSize(LOCAL_CACHE_MAX_SIZE)
-                .expireAfterAccess(Duration.ofMinutes(LOCAL_CACHE_EXPIRATION_MIN))
+                .maximumSize(maxSize)
+                .expireAfterAccess(Duration.ofMinutes(expirationMin))
                 .recordStats();
 
         Caffeine<Object, Object> paymentCards = Caffeine.newBuilder()
-                .maximumSize(LOCAL_CACHE_MAX_SIZE)
-                .expireAfterAccess(Duration.ofMinutes(LOCAL_CACHE_EXPIRATION_MIN))
+                .maximumSize(maxSize)
+                .expireAfterAccess(Duration.ofMinutes(expirationMin))
                 .recordStats();
 
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(USERS_CACHE, PAYMENT_CARDS_CACHE);
         cacheManager.setCaffeine(users);
         cacheManager.setCaffeine(paymentCards);
         return cacheManager;
-
     }
-
 
     @Bean
     public ThreadPoolTaskExecutor cacheRefreshExecutor() {
@@ -58,5 +53,4 @@ public class CacheConfig {
         executor.initialize();
         return executor;
     }
-
 }

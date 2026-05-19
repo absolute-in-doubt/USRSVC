@@ -36,3 +36,10 @@ application:
     enabled: true
   caching:
     enabled: true
+    logging: true
+    local:
+      max-size: 1000
+      expiration-min: 1
+    remote:
+      stale-after-min: 10
+      ttl-min: 15
