@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 public interface TwoLevelCacheService {
 
-    public <T> T get(String cacheName, String key, Type returnType, Supplier<T> dbLoader)
+    <T> T get(String cacheName, String key, Type returnType, Supplier<T> dbLoader)
             throws FailedToPerformOperationException;
 
     void put(String cacheName, String key, Object value);
@@ -15,8 +15,4 @@ public interface TwoLevelCacheService {
     void evict(String cacheName, String key);
 
     void evictAll(String cacheName);
-
-    boolean isCachingOn();
-
-    void setCachingOn(boolean cachingOn);
 }

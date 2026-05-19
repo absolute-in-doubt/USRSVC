@@ -2,12 +2,18 @@ package com.innowise.userservice.infrastructure.cache.postprocessor;
 
 import com.innowise.userservice.infrastructure.cache.TwoLevelCacheService;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheEvict;
+import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aopalliance.intercept.MethodInterceptor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -17,6 +23,10 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(
+        name = "application.caching.enabled",
+        havingValue = "true"
+)
 public class CustomCacheEvictBeanPostProcessor implements BeanPostProcessor {
 
     private final Map<String, Class<?>> map = new HashMap<>();
@@ -36,21 +46,23 @@ public class CustomCacheEvictBeanPostProcessor implements BeanPostProcessor {
     public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         Class<?> beanClass = map.get(beanName);
         if(beanClass != null){
-            return Proxy.newProxyInstance(
-                    beanClass.getClassLoader(),
-                    beanClass.getInterfaces(),
-                    (proxy, method, args) -> {
-                        Object result = method.invoke(bean, args);
-                        CustomCacheEvict annotation = getAnnotation(method, beanClass);
-                        if(annotation != null && cacheService.isCachingOn()){
-                            if(annotation.allEntries())
-                                cacheService.evictAll(annotation.cacheName());
-                            else
-                                cacheService.evict(annotation.cacheName(), constructKey(annotation, args));
-                        }
-                        return result;
+            ProxyFactory proxyFactory = new ProxyFactory(bean);
+            proxyFactory.addAdvice((MethodInterceptor) invocation ->  {
+                    Method method = invocation.getMethod();
+
+                    CustomCacheEvict annotation = getAnnotation(method, beanClass);
+
+                    Object result = invocation.proceed();
+                    if(annotation != null){
+                        if(annotation.allEntries())
+                            cacheService.evictAll(annotation.cacheName());
+                        else
+                            cacheService.evict(annotation.cacheName(), constructKey(annotation, invocation.getArguments()));
                     }
-                );
+                    return result;
+                }
+            );
+            return proxyFactory.getProxy(beanClass.getClassLoader());
         }
         return bean;
     }

@@ -2,25 +2,34 @@ package com.innowise.userservice.infrastructure.cache.postprocessor;
 
 import com.innowise.userservice.infrastructure.cache.TwoLevelCacheService;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheable;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(
+        name = "application.caching.enabled",
+        havingValue = "true"
+)
 public class CustomCacheableBeanPostProcessor implements BeanPostProcessor {
 
     private final Map<String, Class<?>> map = new HashMap<>();
@@ -41,27 +50,26 @@ public class CustomCacheableBeanPostProcessor implements BeanPostProcessor {
 
         Class<?> beanClass = map.get(beanName);
         if(beanClass != null){
-            return Proxy.newProxyInstance(
-                    beanClass.getClassLoader(),
-                    beanClass.getInterfaces(),
-                    (proxy, method, args) -> {
-
+            ProxyFactory proxyFactory = new ProxyFactory(bean);
+            proxyFactory.addAdvice( (MethodInterceptor) invocation -> {
+                        Method method = invocation.getMethod();
                         CustomCacheable annotation = getAnnotation(method, beanClass);
-                        if(annotation != null && cacheService.isCachingOn()) {
-                            return cacheService.get(annotation.cacheName(), constructKey(annotation, args), method.getGenericReturnType(),
+                        if(annotation != null) {
+                            return cacheService.get(annotation.cacheName(), constructKey(annotation, invocation.getArguments()), method.getGenericReturnType(),
                                      () -> {
                                          try {
-                                             return method.invoke(bean, args);
-                                         } catch (IllegalAccessException | InvocationTargetException e) {
+                                             return invocation.proceed();
+                                         } catch (Throwable e) {
                                              Logger log = LoggerFactory.getLogger(beanClass);
                                              log.error("Error during {} cacheable method execution", method.getName(), e);
                                              throw new RuntimeException(e);
                                          }
                                      });
                         } else
-                            return method.invoke(bean, args);
+                            return invocation.proceed();
                     }
                 );
+            return proxyFactory.getProxy(beanClass.getClassLoader());
         }
         return bean;
     }

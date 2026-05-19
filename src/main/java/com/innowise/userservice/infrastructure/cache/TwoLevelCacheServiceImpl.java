@@ -33,7 +33,6 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper mapper;
 
-    private final AtomicBoolean cachingOn = new AtomicBoolean(true);
     private final AtomicBoolean cacheLoggingOn = new AtomicBoolean(true);
 
     public TwoLevelCacheServiceImpl(CacheManager caffeineManager,
@@ -107,16 +106,6 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     public void evictAll(String cacheName) {
         evictAllL1(cacheName);
         evictAllL2(cacheName);
-    }
-
-    @Override
-    public boolean isCachingOn() {
-        return cachingOn.get();
-    }
-
-    @Override
-    public void setCachingOn(boolean cachingOn) {
-        this.cachingOn.set(cachingOn);
     }
 
     private <T> CacheEnvelope<T> getL1(String cacheName, String key) {

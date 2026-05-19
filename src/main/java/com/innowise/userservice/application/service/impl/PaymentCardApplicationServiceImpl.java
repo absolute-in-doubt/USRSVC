@@ -12,6 +12,7 @@ import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.infrastructure.cache.CacheConfig;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheable;
 import com.innowise.userservice.infrastructure.persistence.specification.PaymentCardSpecification;
+import com.innowise.userservice.infrastructure.profiling.annotation.Profiling;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.OptimisticLockException;
@@ -80,6 +81,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     }
 
     @Override
+    @Profiling
     @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0})
     public List<PaymentCardResponseDto> getCardsByUserId(Long userId) {
         return paymentCardMapper.toDtoList(paymentCardRepository.findByUserId(userId));

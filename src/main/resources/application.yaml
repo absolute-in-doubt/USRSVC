@@ -34,3 +34,5 @@ server:
 application:
   profiling:
     enabled: true
+  caching:
+    enabled: true

@@ -4,10 +4,13 @@ import com.innowise.userservice.infrastructure.cache.TwoLevelCacheService;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCachePut;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aopalliance.intercept.MethodInterceptor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationHandler;
@@ -19,6 +22,10 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(
+        name = "application.caching.enabled",
+        havingValue = "true"
+)
 public class CustomCachePutBeanPostProcessor implements BeanPostProcessor {
 
     private Map<String, Class<?>> map = new HashMap<>();
@@ -39,21 +46,21 @@ public class CustomCachePutBeanPostProcessor implements BeanPostProcessor {
     public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         final Class<?> beanClass = map.get(beanName);
         if(beanClass != null) {
-            return Proxy.newProxyInstance(
-                    beanClass.getClassLoader(),
-                    beanClass.getInterfaces(),
-                    new InvocationHandler() {
-                        @Override
-                        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                            Object result = method.invoke(bean, args);
-                            CustomCachePut annotation = getAnnotation(method, beanClass);
-                            if (annotation != null && cacheService.isCachingOn()) {
-                                cacheService.put(annotation.cacheName(), constructKey(annotation, args), result);
-                            }
-                            return result;
-                        }
+            ProxyFactory proxyFactory = new ProxyFactory(bean);
+            proxyFactory.addAdvice((MethodInterceptor) invocation -> {
+                    Method method = invocation.getMethod();
+                    Object[] args = invocation.getArguments();
+
+                    Object result = invocation.proceed();
+                    CustomCachePut annotation = getAnnotation(method, beanClass);
+                    if (annotation != null) {
+                        cacheService.put(annotation.cacheName(), constructKey(annotation, args), result);
                     }
+                    return result;
+
+                }
             );
+            return proxyFactory.getProxy(beanClass.getClassLoader());
         }
         return bean;
     }
