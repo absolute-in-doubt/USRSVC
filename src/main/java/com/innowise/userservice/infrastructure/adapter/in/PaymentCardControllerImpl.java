@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Validated
 @RequiredArgsConstructor
 @RequestMapping("api/v1/cards")
 public class PaymentCardControllerImpl implements PaymentCardController {
@@ -33,13 +32,13 @@ public class PaymentCardControllerImpl implements PaymentCardController {
         return ResponseEntity.ok(service.getPaymentCardById(id));
     }
 
-    public ResponseEntity<Page<PaymentCardResponseDto>> getAllCards(@ParameterObject @Valid PaymentCardFilter filter,
+    public ResponseEntity<Page<PaymentCardResponseDto>> getAllCards(@ParameterObject PaymentCardFilter filter,
                                                                     @ParameterObject @PageableDefault Pageable pageable){
         return ResponseEntity.ok(service.getAllPaymentCards(filter, pageable));
     }
 
     @GetMapping
-    public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@RequestParam("userId") @NotNull Long userId) {
+    public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@RequestParam("userId") Long userId) {
         return ResponseEntity.ok(service.getCardsByUserId(userId));
     }
 
@@ -56,7 +55,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MessageResponseDto> updateCard(@RequestBody @Valid UpdatePaymentCardDto updatePaymentCardDto,
+    public ResponseEntity<MessageResponseDto> updateCard(@RequestBody UpdatePaymentCardDto updatePaymentCardDto,
                                                         @PathVariable("id") Long id) throws PaymentCardNotFoundException {
         service.updateCard(updatePaymentCardDto, id);
         return ResponseEntity.ok(new MessageResponseDto("Card updated successfully"));

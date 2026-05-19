@@ -18,26 +18,25 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
-@Validated
 public class UserControllerImpl implements UserController {
 
     private final UserApplicationService service;
 
     @PostMapping
-    public ResponseEntity<MessageResponseDto> createUser(@RequestBody @Valid CreateUserDto createUserDto){
+    public ResponseEntity<MessageResponseDto> createUser(@RequestBody CreateUserDto createUserDto){
         service.createUser(createUserDto);
         return ResponseEntity.ok(new MessageResponseDto("User created successfully"));
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<MessageResponseDto> updateUser(@RequestBody @Valid UpdateUserDto updateUserDto,
+    public ResponseEntity<MessageResponseDto> updateUser(@RequestBody UpdateUserDto updateUserDto,
                                                          @PathVariable("userId") Long userId) throws UserNotFoundException {
         service.updateUser(updateUserDto, userId);
         return ResponseEntity.ok(new MessageResponseDto("User updated successfully"));
     }
 
     @PostMapping("/{userId}/cards")
-    public ResponseEntity<MessageResponseDto> addCardByUserId(@Valid CreatePaymentCardDto createPaymentCardDto,
+    public ResponseEntity<MessageResponseDto> addCardByUserId(CreatePaymentCardDto createPaymentCardDto,
                                                               @PathVariable("userId") Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
         service.addCardByUserId(createPaymentCardDto, userId);
         return ResponseEntity.ok(new MessageResponseDto("Card added successfully"));
@@ -56,7 +55,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UserResponseDto>> getUsers(@ParameterObject @Valid UserFilter filter,
+    public ResponseEntity<Page<UserResponseDto>> getUsers(@ParameterObject UserFilter filter,
                                                           @ParameterObject @PageableDefault Pageable pageable) {
         return ResponseEntity.ok(service.getUsers(filter, pageable));
     }

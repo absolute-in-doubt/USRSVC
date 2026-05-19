@@ -1,6 +1,10 @@
 spring:
   application:
     name: userservice
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -26,3 +30,7 @@ springdoc:
 
 server:
   port: 8080
+
+application:
+  profiling:
+    enabled: true

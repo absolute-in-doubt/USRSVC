@@ -8,8 +8,9 @@ import com.innowise.userservice.application.service.PaymentCardApplicationServic
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.exception.FailedToPerformOperationException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
-import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
+import com.innowise.userservice.infrastructure.cache.CacheConfig;
+import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheable;
 import com.innowise.userservice.infrastructure.persistence.specification.PaymentCardSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -79,6 +80,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     }
 
     @Override
+    @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0})
     public List<PaymentCardResponseDto> getCardsByUserId(Long userId) {
         return paymentCardMapper.toDtoList(paymentCardRepository.findByUserId(userId));
     }
