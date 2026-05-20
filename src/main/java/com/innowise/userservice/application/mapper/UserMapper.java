@@ -6,7 +6,7 @@ import com.innowise.userservice.application.dto.UserResponseDto;
 import com.innowise.userservice.domain.model.User;
 import org.mapstruct.*;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
 
     @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")

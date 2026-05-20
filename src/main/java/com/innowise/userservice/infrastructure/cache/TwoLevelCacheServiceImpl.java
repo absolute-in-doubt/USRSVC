@@ -104,13 +104,14 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     public void evict(String cacheName, String key) {
         evictL1(cacheName, key);
         evictL2(cacheName, key);
-        log.trace("Cache evict for key {} in {}", key, cacheName);
+        log.trace("Cache evict for key {} for {}", key, cacheName);
     }
 
     @Override
     public void evictAll(String cacheName) {
         evictAllL1(cacheName);
         evictAllL2(cacheName);
+        log.trace("Evict All for {}", cacheName);
     }
 
     private <T> CacheEnvelope<T> getL1(String cacheName, String key) {

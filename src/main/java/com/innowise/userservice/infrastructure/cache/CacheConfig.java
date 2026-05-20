@@ -2,11 +2,13 @@ package com.innowise.userservice.infrastructure.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.config.SpringDataJackson3Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.time.Duration;
@@ -45,6 +47,11 @@ public class CacheConfig {
             cacheManager.registerCustomCache(caches[i], cache.build());
         }
         return cacheManager;
+    }
+
+    @Bean
+    public JsonMapperBuilderCustomizer springDataPageModuleCustomizer() {
+        return builder -> builder.addModule(new SpringDataJackson3Configuration().jackson3pageModule());
     }
 
     @Bean
