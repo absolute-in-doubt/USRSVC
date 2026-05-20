@@ -17,7 +17,17 @@ import java.time.Duration;
 public class CacheConfig {
 
     public static final String PAYMENT_CARDS_CACHE = "payment_cards_cache";
+    public static final String PAYMENT_CARDS_VIA_USER_ID_CACHE = "pc_via_user_id_cache";
+    public static final String PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE = "pc_filtered_and_paged_cache";
     public static final String USERS_CACHE = "users_cache";
+    public static final String USERS_FILTERED_AND_PAGED_CACHE = "users_filtered_and_paged_cache";
+    private static final String[] caches = {
+            PAYMENT_CARDS_CACHE,
+            PAYMENT_CARDS_VIA_USER_ID_CACHE,
+            PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE,
+            USERS_CACHE,
+            USERS_FILTERED_AND_PAGED_CACHE
+    };
 
     private final CacheProperties cacheProperties;
 
@@ -26,19 +36,14 @@ public class CacheConfig {
         int maxSize = cacheProperties.local().maxSize();
         int expirationMin = cacheProperties.local().expirationMin();
 
-        Caffeine<Object, Object> users = Caffeine.newBuilder()
-                .maximumSize(maxSize)
-                .expireAfterAccess(Duration.ofMinutes(expirationMin))
-                .recordStats();
-
-        Caffeine<Object, Object> paymentCards = Caffeine.newBuilder()
-                .maximumSize(maxSize)
-                .expireAfterAccess(Duration.ofMinutes(expirationMin))
-                .recordStats();
-
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(USERS_CACHE, PAYMENT_CARDS_CACHE);
-        cacheManager.setCaffeine(users);
-        cacheManager.setCaffeine(paymentCards);
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager(caches);
+        for(int i = 0; i < caches.length; i++) {
+            Caffeine<Object, Object> cache = Caffeine.newBuilder()
+                    .maximumSize(maxSize)
+                    .expireAfterAccess(Duration.ofMinutes(expirationMin))
+                    .recordStats();
+            cacheManager.registerCustomCache(caches[i], cache.build());
+        }
         return cacheManager;
     }
 

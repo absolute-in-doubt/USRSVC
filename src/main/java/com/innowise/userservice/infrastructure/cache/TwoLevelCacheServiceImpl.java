@@ -55,7 +55,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
 
         if(l1Result != null) {
             if(cacheLoggingOn)
-                log.trace("L1 cache hit for {}", l1Result.data());
+                log.trace("L1 {} hit for {} with key {}", cacheName,l1Result.data(), key);
 
             return l1Result.data(); //may as well return null
         }
@@ -66,12 +66,12 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
                     T result = l2Result.data();
                     putL1(cacheName, key, l2Result);
                     if(cacheLoggingOn)
-                        log.trace("L2 cache hit for {}", result);
+                        log.trace("L2 {} hit for {} with key {}",cacheName, result, key);
 
                     return result;
             } else { //value exists, but it's stale
                 if(cacheLoggingOn)
-                    log.trace("L2 cache hit (stale) for {}\nInitiating async update", l2Result.data());
+                    log.trace("L2 {} hit (stale) for {} with key {}\nInitiating async update", cacheName, l2Result.data(), key);
                 CompletableFuture.supplyAsync(() -> {
                     try {
                         return loadWithLockAndSecondCheck(cacheName, key, returnType, dbLoader);
@@ -87,7 +87,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
         // same thing but synchronously
         T result = loadWithLockAndSecondCheck(cacheName, key,  returnType, dbLoader);
         if(cacheLoggingOn)
-            log.trace("Cache miss for {}", result);
+            log.trace("{} miss for {} with key {}", cacheName, result, key);
         return result;
     }
 
@@ -97,13 +97,14 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
                     .plus(Duration.ofMinutes(cacheProperties.remote().staleAfterMin())));
             putL1(cacheName, key, envelope);
             putL2(cacheName, key, envelope);
-
+            log.trace("{} put for {} with key {}", cacheName,value, key);
     }
 
     @Override
     public void evict(String cacheName, String key) {
         evictL1(cacheName, key);
         evictL2(cacheName, key);
+        log.trace("Cache evict for key {} in {}", key, cacheName);
     }
 
     @Override

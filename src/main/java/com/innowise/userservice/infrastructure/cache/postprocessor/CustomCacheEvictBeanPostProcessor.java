@@ -15,6 +15,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ReflectionUtils;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
@@ -34,7 +36,7 @@ public class CustomCacheEvictBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public @Nullable Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        Method[] methods = bean.getClass().getDeclaredMethods();
+        Method[] methods = ReflectionUtils.getAllDeclaredMethods(bean.getClass());
         for(Method method : methods){
             if(method.isAnnotationPresent(CustomCacheEvict.class))
                 map.put(beanName, bean.getClass());
@@ -80,7 +82,7 @@ public class CustomCacheEvictBeanPostProcessor implements BeanPostProcessor {
         StringBuilder key = new StringBuilder();
         try {
             for(int i : keyArgumentIndexes){
-                key.append(args[i].hashCode()).append(" ");
+                key.append(args[i].hashCode());
             }
         } catch(IndexOutOfBoundsException e) {
             log.error("key argument index out of bounds for @CustomCacheable annotation");

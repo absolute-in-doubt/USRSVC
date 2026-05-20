@@ -16,6 +16,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,7 +38,7 @@ public class CustomCacheableBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public @Nullable Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        Method[] methods = bean.getClass().getDeclaredMethods();
+        Method[] methods = ReflectionUtils.getAllDeclaredMethods(bean.getClass());
         for(Method method : methods){
             if(method.isAnnotationPresent(CustomCacheable.class))
                 map.put(beanName, bean.getClass());
@@ -47,7 +48,6 @@ public class CustomCacheableBeanPostProcessor implements BeanPostProcessor {
 
     @Override
     public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-
         Class<?> beanClass = map.get(beanName);
         if(beanClass != null){
             ProxyFactory proxyFactory = new ProxyFactory(bean);
@@ -88,13 +88,14 @@ public class CustomCacheableBeanPostProcessor implements BeanPostProcessor {
 
         try {
             for (int i : keyArgumentIndexes) {
-                key.append(args[i].hashCode()).append(" ");
+                key.append(args[i].hashCode());
             }
         } catch(IndexOutOfBoundsException e) {
             log.error("key argument index out of bounds for @CustomCacheable annotation");
             throw e;
         }
 
+        log.debug("Constructing key for @CustomCacheable: {}", key.toString());
         return key.toString();
     }
 }

@@ -10,6 +10,11 @@ import com.innowise.userservice.domain.model.exception.FailedToPerformOperationE
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.out.UserRepository;
+import com.innowise.userservice.infrastructure.cache.CacheConfig;
+import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheEvict;
+import com.innowise.userservice.infrastructure.cache.annotation.CustomCachePut;
+import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheable;
+import com.innowise.userservice.infrastructure.cache.annotation.CustomCaching;
 import com.innowise.userservice.infrastructure.persistence.specification.UserSpecification;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +40,13 @@ public class UserApplicationServiceImpl implements UserApplicationService {
 
     @Override
     @Transactional
-    public void createUser(CreateUserDto createUserDto) {
-        userRepository.save(userMapper.toEntity(createUserDto));
+    @CustomCaching(
+            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
+    )
+    public UserResponseDto createUser(CreateUserDto createUserDto) {
+        User user = userRepository.save(userMapper.toEntity(createUserDto));
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -48,10 +58,15 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
-    public void updateUser(UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException {
+    @CustomCaching(
+            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
+    )
+    public UserResponseDto updateUser(UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         userMapper.updateEntity(updateUserDto, user);
-        userRepository.save(user);
+        user = userRepository.save(user);
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -62,6 +77,12 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             retryFor = {OptimisticLockException.class, TransientDataAccessException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
+    )
+    @CustomCaching(
+            evict = {
+                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true)
+            }
     )
     public void addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
@@ -79,10 +100,16 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
-    public void deactivateUserById(Long id) throws UserNotFoundException {
+    @CustomCaching(
+            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
+    )
+    public UserResponseDto deactivateUserById(Long id) throws UserNotFoundException {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setActive(false);
-        userRepository.save(user);
+        user = userRepository.save(user);
+        log.trace("Deactivated user: {}", user);
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -94,18 +121,25 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
-    public void activateUserById(Long id) throws UserNotFoundException {
+    @CustomCaching(
+            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
+    )
+    public UserResponseDto activateUserById(Long id) throws UserNotFoundException {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         user.setActive(true);
-        userRepository.save(user);
+        user = userRepository.save(user);
+        return userMapper.toDto(user);
     }
 
     @Override
+    @CustomCacheable(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, keyArgumentIndexes = {0,1})
     public Page<UserResponseDto> getUsers(UserFilter filter, Pageable pageable) {
         return userRepository.findAll(UserSpecification.fromUserFilter(filter), pageable).map(userMapper::toDto);
     }
 
     @Override
+    @CustomCacheable(cacheName = CacheConfig.USERS_CACHE, keyArgumentIndexes = {0})
     public UserResponseDto getUserById(Long id) throws UserNotFoundException {
         return userMapper.toDto(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
     }

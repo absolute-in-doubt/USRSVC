@@ -11,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @Getter @Setter
+@ToString
 @NoArgsConstructor
 public class User {
 
@@ -37,6 +38,7 @@ public class User {
     @Version
     private int version;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<PaymentCard> cards;
 

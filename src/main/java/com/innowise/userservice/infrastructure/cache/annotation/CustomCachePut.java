@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface CustomCachePut {
     String cacheName();
-    int[] keyArgumentIndexes();
+    int[] keyArgumentIndexes() default {};
+    String keySpEL() default "";
 }
