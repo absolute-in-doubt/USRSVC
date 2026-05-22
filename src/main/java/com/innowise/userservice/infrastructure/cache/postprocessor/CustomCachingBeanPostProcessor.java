@@ -115,7 +115,7 @@ public class CustomCachingBeanPostProcessor implements BeanPostProcessor {
 
         try {
             for (int i : keyArgumentIndexes) {
-                key.append(args[i].hashCode()).append(" ");
+                key.append(args[i].hashCode());
             }
         } catch(IndexOutOfBoundsException e) {
             log.error("key argument index out of bounds for @CustomCacheable annotation");
@@ -128,7 +128,7 @@ public class CustomCachingBeanPostProcessor implements BeanPostProcessor {
     private String constructKeyWithSpEL(CustomCachePut annotation, Object[] args, Object result){
         //It wasn't supposed to go that far
         //Mainly it's used to retrieve the key from the returned value
-        log.debug("Constructing key for @CachePut with SpEL: {}", annotation.keySpEL());
+
         if(!annotation.keySpEL().isEmpty()){
             Expression expression = expressionsCache.computeIfAbsent(annotation.keySpEL(), spelParser::parseExpression);
             StandardEvaluationContext expressionContext = new StandardEvaluationContext();
@@ -144,7 +144,7 @@ public class CustomCachingBeanPostProcessor implements BeanPostProcessor {
             return rawKey.toString();
         }
 
-
+        log.debug("Constructing key for @CachePut (inside @CustomCaching) with arg indexes: {}", annotation.keySpEL());
         int[] keyArgumentIndexes = annotation.keyArgumentIndexes();
         StringBuilder key = new StringBuilder();
         try {
@@ -155,6 +155,7 @@ public class CustomCachingBeanPostProcessor implements BeanPostProcessor {
             log.error("key argument index out of bounds for @CustomCacheable annotation");
             throw e;
         }
+        log.debug("Resolved key: {}", key);
         return key.toString();
     }
 }

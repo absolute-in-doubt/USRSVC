@@ -6,9 +6,14 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.web.config.SpringDataJackson3Configuration;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 import java.lang.reflect.Type;
 import java.time.Duration;
@@ -28,7 +33,6 @@ import java.util.function.Supplier;
 @Component
 @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
-
     private final CacheManager caffeineManager;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper mapper;
@@ -36,15 +40,23 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
 
     private final boolean cacheLoggingOn;
 
-    public TwoLevelCacheServiceImpl(CacheManager caffeineManager,
-                                    StringRedisTemplate redisTemplate,
-                                    @Lazy ObjectMapper mapper,
-                                    CacheProperties cacheProperties) {
+    public TwoLevelCacheServiceImpl(
+            CacheManager caffeineManager,
+            StringRedisTemplate redisTemplate,
+            @Lazy ObjectMapper mapper,
+            CacheProperties cacheProperties
+    ) {
         this.caffeineManager = caffeineManager;
         this.redisTemplate = redisTemplate;
-        this.mapper = mapper;
         this.cacheProperties = cacheProperties;
         this.cacheLoggingOn = cacheProperties.logging();
+
+        this.mapper = mapper.rebuild()
+                .addModule(
+                        new SpringDataJackson3Configuration().jackson3pageModule()
+                )
+                .build();
+
     }
 
     @Override
@@ -55,7 +67,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
 
         if(l1Result != null) {
             if(cacheLoggingOn)
-                log.trace("L1 {} hit for {} with key {}", cacheName,l1Result.data(), key);
+                log.trace("L1 {} hit for {} with key <{}>", cacheName,l1Result.data(), key);
 
             return l1Result.data(); //may as well return null
         }
@@ -66,17 +78,17 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
                     T result = l2Result.data();
                     putL1(cacheName, key, l2Result);
                     if(cacheLoggingOn)
-                        log.trace("L2 {} hit for {} with key {}",cacheName, result, key);
+                        log.trace("L2 {} hit for {} with key <{}>",cacheName, result, key);
 
                     return result;
             } else { //value exists, but it's stale
                 if(cacheLoggingOn)
-                    log.trace("L2 {} hit (stale) for {} with key {}\nInitiating async update", cacheName, l2Result.data(), key);
+                    log.trace("L2 {} hit (stale) for {} with key <{}>\nInitiating async update", cacheName, l2Result.data(), key);
                 CompletableFuture.supplyAsync(() -> {
                     try {
                         return loadWithLockAndSecondCheck(cacheName, key, returnType, dbLoader);
                     } catch (FailedToPerformOperationException e) {
-                        log.error("Error loading the value from DB for cache {}:{}\n", cacheName, key, e);
+                        log.error("Error loading the value from DB for cache {}:<{}>\n", cacheName, key, e);
                         return null;
                     }
                 });
@@ -87,7 +99,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
         // same thing but synchronously
         T result = loadWithLockAndSecondCheck(cacheName, key,  returnType, dbLoader);
         if(cacheLoggingOn)
-            log.trace("{} miss for {} with key {}", cacheName, result, key);
+            log.trace("{} miss for {} with key <{}>", cacheName, result, key);
         return result;
     }
 
@@ -97,14 +109,14 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
                     .plus(Duration.ofMinutes(cacheProperties.remote().staleAfterMin())));
             putL1(cacheName, key, envelope);
             putL2(cacheName, key, envelope);
-            log.trace("{} put for {} with key {}", cacheName,value, key);
+            log.trace("{} put for {} with key <{}>", cacheName,value, key);
     }
 
     @Override
     public void evict(String cacheName, String key) {
         evictL1(cacheName, key);
         evictL2(cacheName, key);
-        log.trace("Cache evict for key {} for {}", key, cacheName);
+        log.trace("Cache evict for key <{}> for {}", key, cacheName);
     }
 
     @Override
@@ -125,13 +137,26 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
         if(json == null)
             return null;
 
-//        CacheEnvelope<?> envelope = mapper.readValue(json, CacheEnvelope.class);
-//        JavaType javaType = mapper.getTypeFactory().constructType(returnType);
-//        T data = mapper.convertValue(envelope.data(), javaType);
+        JavaType javaType =
+                mapper.getTypeFactory()
+                        .constructType(returnType);
+
+        if(javaType.isTypeOrSubTypeOf(Page.class)) {
+
+            JavaType contentType =
+                    javaType.getBindings().getBoundType(0);
+
+            javaType =
+                    mapper.getTypeFactory()
+                            .constructParametricType(
+                                    PageImpl.class,
+                                    contentType
+                            );
+        }
         var root = mapper.readTree(json);
         String dataJson = root.get("data").toString();
-        T data = mapper.readValue(dataJson, mapper.getTypeFactory().constructType(returnType));
-        LocalDateTime freshUntil = mapper.convertValue(root.get("freshUntil"), LocalDateTime.class);
+        T data = mapper.readValue(dataJson, javaType);
+        LocalDateTime freshUntil = mapper.treeToValue(root.get("freshUntil"), LocalDateTime.class);
         return new CacheEnvelope<T>(data, freshUntil);
     }
 
@@ -146,14 +171,14 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
         while(!acquired){
             try {
                 if(timeoutMs > 10000) {
-                    log.warn("Couldn't acquire cache lock for {}:{}", cacheName, key);
+                    log.warn("Couldn't acquire cache lock for {}:<{}>", cacheName, key);
                     throw new FailedToPerformOperationException("Failed to retrieve cache lock to load the value: " + cacheName + ":" + key);
                 }
                 Thread.sleep(timeoutMs);
                 timeoutMs *= 2;
                 acquired = redisTemplate.opsForValue().setIfAbsent(lockKey, "1", Duration.ofSeconds(60));
             } catch (InterruptedException e) {
-                log.warn("Interrupted while waiting for the cache lock for {}:{}", cacheName, key);
+                log.warn("Interrupted while waiting for the cache lock for {}:<{}>", cacheName, key);
                 throw new FailedToPerformOperationException("Interrupted while waiting for the cache lock for  " + cacheName + ":" + key);
             }
         }
@@ -178,7 +203,6 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
         } finally{
             redisTemplate.delete(lockKey);
         }
-//        CompletableFuture.supplyAsync(dbLoader).thenAccept(entity -> put(cacheName, key, entity));
 
     }
 
