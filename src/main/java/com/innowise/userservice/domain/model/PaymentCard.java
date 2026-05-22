@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,12 +13,14 @@ import java.time.LocalDateTime;
 @Table(name = "payment_cards")
 @Getter @Setter
 @NoArgsConstructor
+@ToString
 public class PaymentCard {
     @SequenceGenerator(name = "payment_cards_id_gen", sequenceName = "payment_cards_id_seq", allocationSize = 50)
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "payment_cards_id_gen")
     private Long id;
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;

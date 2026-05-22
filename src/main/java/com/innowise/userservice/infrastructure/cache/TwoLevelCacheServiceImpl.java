@@ -2,6 +2,7 @@ package com.innowise.userservice.infrastructure.cache;
 
 import com.innowise.userservice.domain.model.exception.FailedToPerformOperationException;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Call;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
@@ -20,6 +21,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -60,7 +62,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     }
 
     @Override
-    public <T> T get(String cacheName, String key, Type returnType, Supplier<T> dbLoader) throws FailedToPerformOperationException {
+    public <T> T get(String cacheName, String key, Type returnType, Callable<T> dbLoader) throws Exception {
 
 
         CacheEnvelope<T> l1Result = getL1(cacheName, key);
@@ -87,7 +89,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
                 CompletableFuture.supplyAsync(() -> {
                     try {
                         return loadWithLockAndSecondCheck(cacheName, key, returnType, dbLoader);
-                    } catch (FailedToPerformOperationException e) {
+                    } catch (Exception e) {
                         log.error("Error loading the value from DB for cache {}:<{}>\n", cacheName, key, e);
                         return null;
                     }
@@ -163,7 +165,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     private <T> T loadWithLockAndSecondCheck(String cacheName,
                                              String key,
                                              Type returnType,
-                                             Supplier<T> dbLoader) throws FailedToPerformOperationException {
+                                             Callable<T> dbLoader) throws Exception {
         String lockKey = "lock:" + cacheName + ":" +  key;
         boolean acquired = redisTemplate.opsForValue().setIfAbsent(lockKey, "1", Duration.ofSeconds(60));
 
@@ -196,7 +198,7 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
                 return envelope.data();
             }
 
-            T value = dbLoader.get();  //NOTE: even if the DB operation returns null -> wrap it and store as it is to avid czche penetration
+            T value = dbLoader.call();  //NOTE: even if the DB operation returns null -> wrap it and store as it is to avid czche penetration
             CacheEnvelope<T> cacheEnvelope = new CacheEnvelope<>(value, LocalDateTime.now().plus(Duration.ofMinutes(cacheProperties.remote().staleAfterMin())));
             put(cacheName, key, value);
             return value;

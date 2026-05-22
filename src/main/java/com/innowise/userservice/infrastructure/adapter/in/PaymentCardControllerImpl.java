@@ -32,13 +32,14 @@ public class PaymentCardControllerImpl implements PaymentCardController {
         return ResponseEntity.ok(service.getPaymentCardById(id));
     }
 
-    public ResponseEntity<Page<PaymentCardResponseDto>> getAllCards(@ParameterObject PaymentCardFilter filter,
+    @GetMapping
+    public ResponseEntity<Page<PaymentCardResponseDto>> getAllCards(@Valid @ParameterObject PaymentCardFilter filter,
                                                                     @ParameterObject @PageableDefault Pageable pageable){
         return ResponseEntity.ok(service.getAllPaymentCards(filter, pageable));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@RequestParam("userId") Long userId) {
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(service.getCardsByUserId(userId));
     }
 
@@ -55,7 +56,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MessageResponseDto> updateCard(@RequestBody UpdatePaymentCardDto updatePaymentCardDto,
+    public ResponseEntity<MessageResponseDto> updateCard(@Valid @RequestBody UpdatePaymentCardDto updatePaymentCardDto,
                                                         @PathVariable("id") Long id) throws PaymentCardNotFoundException {
         service.updateCard(updatePaymentCardDto, id);
         return ResponseEntity.ok(new MessageResponseDto("Card updated successfully"));

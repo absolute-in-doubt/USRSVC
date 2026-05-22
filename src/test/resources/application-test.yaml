@@ -1,0 +1,27 @@
+spring:
+  redis:
+    host: localhost
+    port: 6379
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/test
+    username: test
+    password: test
+  liquibase:
+    enabled: false
+
+application:
+  profiling:
+    enabled: true
+  caching:
+    enabled: true
+    logging: true
+    local:
+      max-size: 1000
+      expiration-min: 5
+    remote:
+      stale-after-min: 10
+      ttl-min: 15

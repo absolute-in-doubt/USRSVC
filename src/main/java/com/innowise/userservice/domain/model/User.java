@@ -6,14 +6,18 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "users")
 @Getter @Setter
 @ToString
-@NoArgsConstructor
 public class User {
+
+    public User() {
+        this.cards = new ArrayList<>();
+    }
 
     private static final int MAX_CARDS_COUNT = 5;
 

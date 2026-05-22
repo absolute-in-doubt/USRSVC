@@ -14,7 +14,7 @@ public class PaymentCardSpecification {
 
     public static Specification<PaymentCard> withUserLastName(String lastName){
         return (root, query, cb) -> (lastName == null)? null :
-                cb.equal(root.join("user", JoinType.INNER).get("firstName"), lastName);
+                cb.equal(root.join("user", JoinType.INNER).get("lastName"), lastName);
     }
 
 
