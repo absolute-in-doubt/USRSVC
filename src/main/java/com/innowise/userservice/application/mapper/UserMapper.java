@@ -11,6 +11,7 @@ public interface UserMapper {
 
     @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "active", constant = "true")
     User toEntity(CreateUserDto createUserDto);
 
     UserResponseDto toDto(User user);

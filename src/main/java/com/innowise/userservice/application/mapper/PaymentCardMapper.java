@@ -12,6 +12,7 @@ import java.util.List;
 public interface PaymentCardMapper {
     @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "active", constant = "true")
     PaymentCard toEntity(CreatePaymentCardDto createPaymentCardDto);
 
     PaymentCardResponseDto toDto(PaymentCard paymentCard);

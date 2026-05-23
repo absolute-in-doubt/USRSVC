@@ -87,6 +87,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     public void addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         PaymentCard card = paymentCardMapper.toEntity(createPaymentCardDto);
+        log.debug("Mapped payment card in addCardById: {}", card);
         user.addCard(card);
         userRepository.save(user);
     }

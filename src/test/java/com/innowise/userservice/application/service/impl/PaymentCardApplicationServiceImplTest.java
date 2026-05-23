@@ -48,18 +48,18 @@ class PaymentCardApplicationServiceImplTest {
     private PaymentCardApplicationService service;
 
     private User user;
+    private User user2;
     private PaymentCard paymentCard;
     private PaymentCardResponseDto paymentCardResponseDto;
     private UpdatePaymentCardDto updatePaymentCardDto;
+    private PaymentCardFilter filter;
     private Pageable pageable;
 
     @BeforeEach
     void setUp() {
-        // Clean DB before each test
         paymentCardRepository.deleteAll();
         userRepository.deleteAll();
 
-        // Create test user
         user = new User();
         user.setFirstName("John");
         user.setLastName("Doe");
@@ -67,7 +67,13 @@ class PaymentCardApplicationServiceImplTest {
         user.setActive(true);
         user = userRepository.save(user);
 
-        // Create test payment card
+        user2 = new User();
+        user2.setFirstName("Jane");
+        user2.setLastName("Smith");
+        user2.setEmail("jane.smith@example.com");
+        user2.setActive(true);
+        user2 = userRepository.save(user2);
+
         paymentCard = new PaymentCard();
         paymentCard.setUser(user);
         paymentCard.setCardNumber("1234567890123456");
@@ -90,9 +96,11 @@ class PaymentCardApplicationServiceImplTest {
         updatePaymentCardDto = new UpdatePaymentCardDto(
                 "9876543210987654",
                 "Jane Smith",
-                "2029-11-30",
+                LocalDate.of(2029,11,30),
                 false
         );
+
+        filter = new PaymentCardFilter("John", "Doe");
 
         pageable = PageRequest.of(0, 10);
     }
@@ -117,9 +125,6 @@ class PaymentCardApplicationServiceImplTest {
 
     @Test
     void getAllPaymentCards_Success() {
-        PaymentCardFilter filter = new PaymentCardFilter("John", "Doe");
-
-        System.out.println("All the cards: " + paymentCardRepository.findAll());
         Page<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
         
         assertNotNull(result);
@@ -185,15 +190,7 @@ class PaymentCardApplicationServiceImplTest {
 
     @Test
     void getCardsByUserId_EmptyList() {
-        // Create another user with no cards
-        User newUser = new User();
-        newUser.setFirstName("Jane");
-        newUser.setLastName("Smith");
-        newUser.setEmail("jane.smith@example.com");
-        newUser.setActive(true);
-        newUser = userRepository.save(newUser);
-        
-        List<PaymentCardResponseDto> result = service.getCardsByUserId(newUser.getId());
+        List<PaymentCardResponseDto> result = service.getCardsByUserId(user2.getId());
         
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -204,9 +201,9 @@ class PaymentCardApplicationServiceImplTest {
         service.updateCard(updatePaymentCardDto, paymentCard.getId());
         
         PaymentCard updatedCard = paymentCardRepository.findById(paymentCard.getId()).orElseThrow();
-        assertEquals("9876543210987654", updatedCard.getCardNumber());
-        assertEquals("Jane Smith", updatedCard.getHolder());
-        assertEquals(LocalDate.of(2029, 11, 30), updatedCard.getExpirationDate());
+        assertEquals(updatePaymentCardDto.cardNumber(), updatedCard.getCardNumber());
+        assertEquals(updatePaymentCardDto.holder(), updatedCard.getHolder());
+        assertEquals(updatePaymentCardDto.expirationDate(), updatedCard.getExpirationDate());
         assertFalse(updatedCard.isActive());
     }
 

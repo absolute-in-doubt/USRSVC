@@ -12,7 +12,7 @@ spring:
         connection:
           isolation: READ_COMMITTED
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        show_sql: true
+        show_sql: false
   datasource:
     url: ${POSTGRES_URL}
     username: ${POSTGRES_USER}

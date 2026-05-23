@@ -8,7 +8,6 @@ import com.innowise.userservice.domain.model.*;
 import com.innowise.userservice.domain.model.exception.*;
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.domain.port.out.UserRepository;
-import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +50,6 @@ class UserApplicationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // Clean DB before each test
         userRepository.deleteAll();
 
         user = new User();
@@ -80,31 +78,30 @@ class UserApplicationServiceImplTest {
         assertEquals(userResponseDto.lastName(), result.lastName());
         assertEquals(userResponseDto.email(), result.email());
         assertTrue(userRepository.findById(result.id()).isPresent());
+        assertTrue(userResponseDto.active());
     }
 
     @Test
     void updateUser() throws UserNotFoundException {
-        userRepository.save(user);
-        UserResponseDto result = service.updateUser(updateUserDto, 1L);
-        User updated = userRepository.findById(1L).orElseThrow();
-        assertEquals("newFirstName", updated.getFirstName());
-        assertEquals("newLastName", updated.getLastName());
-        assertEquals("email", updated.getEmail());
-        assertTrue(updated.isActive());
+        user = userRepository.save(user);
+        service.updateUser(updateUserDto, user.getId());
+        User updated = userRepository.findById(user.getId()).orElseThrow();
+        assertEquals(updateUserDto.firstName(), updated.getFirstName());
+        assertEquals(updateUserDto.lastName(), updated.getLastName());
+        assertEquals(updateUserDto.email(), updated.getEmail());
+        assertEquals(updateUserDto.active(),updated.isActive());
     }
 
     @Test
     void addCardByUserId() throws UserNotFoundException, MaxPaymentCardsExceededException {
-        User someUser = new User();
-        someUser.setFirstName("firstName");
-        someUser.setLastName("lastName");
-        someUser.setEmail("email");
-        user = userRepository.save(someUser);
+        user = userRepository.save(user);
         service.addCardByUserId(createPaymentCardDto, user.getId());
         user = userRepository.findById(user.getId()).orElseThrow();
         List<PaymentCard> pcs = pcRepo.findByUserId(user.getId());
+        PaymentCard paymentCardResult = pcs.getFirst();
         assertEquals(1, pcs.size());
-        assertEquals(paymentCard.getCardNumber(), pcs.getFirst().getCardNumber());
+        assertEquals(paymentCard.getCardNumber(), paymentCardResult.getCardNumber());
+        assertTrue(paymentCardResult.isActive());
     }
 
     @Test
