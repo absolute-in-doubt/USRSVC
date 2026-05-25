@@ -22,13 +22,13 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/cards")
+@RequestMapping("/api/v1")
 public class PaymentCardControllerImpl implements PaymentCardController {
 
     private final PaymentCardApplicationService service;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PaymentCardResponseDto> getCardById(@PathVariable("id") Long id) throws PaymentCardNotFoundException {
+    @GetMapping("/cards/{paymentCardId}")
+    public ResponseEntity<PaymentCardResponseDto> getCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         return ResponseEntity.ok(service.getPaymentCardById(id));
     }
 
@@ -38,26 +38,26 @@ public class PaymentCardControllerImpl implements PaymentCardController {
         return ResponseEntity.ok(service.getAllPaymentCards(filter, pageable));
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/{userId}/cards")
     public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(service.getCardsByUserId(userId));
     }
 
-    @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<MessageResponseDto> deactivateCardById(@PathVariable("id") Long id) throws PaymentCardNotFoundException {
+    @PatchMapping("/cards/{paymentCardId}/deactivate")
+    public ResponseEntity<MessageResponseDto> deactivateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.deactivateCardById(id);
         return ResponseEntity.ok(new MessageResponseDto("Card deactivated successfully"));
     }
 
-    @PatchMapping("/{id}/activate")
-    public ResponseEntity<MessageResponseDto> activateCardById(@PathVariable("id") Long id) throws PaymentCardNotFoundException {
+    @PatchMapping("/cards/{paymentCardId}/activate")
+    public ResponseEntity<MessageResponseDto> activateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.activateCardById(id);
         return ResponseEntity.ok(new MessageResponseDto("Card activated successfully"));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/cards/{paymentCardId}")
     public ResponseEntity<MessageResponseDto> updateCard(@Valid @RequestBody UpdatePaymentCardDto updatePaymentCardDto,
-                                                        @PathVariable("id") Long id) throws PaymentCardNotFoundException {
+                                                        @PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.updateCard(updatePaymentCardDto, id);
         return ResponseEntity.ok(new MessageResponseDto("Card updated successfully"));
     }

@@ -5,15 +5,15 @@ import com.innowise.userservice.application.service.UserApplicationService;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.in.UserController;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,9 +23,9 @@ public class UserControllerImpl implements UserController {
     private final UserApplicationService service;
 
     @PostMapping
-    public ResponseEntity<MessageResponseDto> createUser(@RequestBody CreateUserDto createUserDto){
-        service.createUser(createUserDto);
-        return ResponseEntity.ok(new MessageResponseDto("User created successfully"));
+    public ResponseEntity<Void> createUser(@RequestBody CreateUserDto createUserDto){
+        UserResponseDto userResult = service.createUser(createUserDto);
+        return ResponseEntity.created(URI.create("/api/v1/users/" + userResult.id())).build();
     }
 
     @PutMapping("/{userId}")
@@ -42,14 +42,14 @@ public class UserControllerImpl implements UserController {
         return ResponseEntity.ok(new MessageResponseDto("Card added successfully"));
     }
 
-    @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<MessageResponseDto> deactivateUserById(@PathVariable("id") Long id) throws UserNotFoundException {
+    @PatchMapping("/{userId}/deactivate")
+    public ResponseEntity<MessageResponseDto> deactivateUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
         service.deactivateUserById(id);
         return ResponseEntity.ok(new MessageResponseDto("User deactivated successfully"));
     }
 
-    @PatchMapping("/{id}/activate")
-    public ResponseEntity<MessageResponseDto> activateUserById(@PathVariable("id") Long id) throws UserNotFoundException {
+    @PatchMapping("/{userId}/activate")
+    public ResponseEntity<MessageResponseDto> activateUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
         service.activateUserById(id);
         return ResponseEntity.ok(new MessageResponseDto("User activated successfully"));
     }
@@ -60,8 +60,8 @@ public class UserControllerImpl implements UserController {
         return ResponseEntity.ok(service.getUsers(filter, pageable));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable("id") Long id) throws UserNotFoundException {
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
         return ResponseEntity.ok(service.getUserById(id));
     }
 }
