@@ -11,6 +11,7 @@ import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundExcept
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.infrastructure.cache.CacheConfig;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheEvict;
+import com.innowise.userservice.infrastructure.cache.annotation.CustomCachePut;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheable;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCaching;
 import com.innowise.userservice.infrastructure.persistence.specification.PaymentCardSpecification;
@@ -64,17 +65,19 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
     @CustomCaching(
+            put = @CustomCachePut(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keySpEL = "#result.id"),
             evict = {
-                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0}),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
                     @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
-    public void deactivateCardById(Long id) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto deactivateCardById(Long id) throws PaymentCardNotFoundException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         entityManager.lock(paymentCard.getUser(), LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         paymentCardRepository.setActiveById(id, false);
+        paymentCard.setActive(false);
+        return paymentCardMapper.toDto(paymentCard);
     }
 
     @Override
@@ -87,17 +90,19 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
     @CustomCaching(
+            put = @CustomCachePut(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keySpEL = "#result.id"),
             evict = {
-                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0}),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
                     @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
-    public void activateCardById(Long id) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto activateCardById(Long id) throws PaymentCardNotFoundException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         entityManager.lock(paymentCard.getUser(), LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         paymentCardRepository.setActiveById(id, true);
+        paymentCard.setActive(true);
+        return paymentCardMapper.toDto(paymentCard);
     }
 
     @Override

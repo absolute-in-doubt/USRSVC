@@ -120,8 +120,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     public UserResponseDto deactivateUserById(Long id) throws UserNotFoundException {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userRepository.setActiveById(user.getId(), false);
-        user = userRepository.save(user);
-        log.trace("Deactivated user: {}", user);
+        user.setActive(false);
         return userMapper.toDto(user);
     }
 
@@ -144,7 +143,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     public UserResponseDto activateUserById(Long id) throws UserNotFoundException {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         userRepository.setActiveById(user.getId(), true);
-        user = userRepository.save(user);
+        user.setActive(true);
         return userMapper.toDto(user);
     }
 
