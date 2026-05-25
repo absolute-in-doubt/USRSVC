@@ -33,8 +33,8 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        int maxSize = cacheProperties.local().maxSize();
-        int expirationMin = cacheProperties.local().expirationMin();
+        int maxSize = (cacheProperties.local() != null) ? cacheProperties.local().maxSize() : 1000;
+        int expirationMin = (cacheProperties.local() != null)? cacheProperties.local().expirationMin() : 1;
 
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(caches);
         for(int i = 0; i < caches.length; i++) {

@@ -135,31 +135,36 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
     }
 
     private <T> CacheEnvelope<T> getL2(String cacheName, String key, Type returnType){
-        String json = redisTemplate.opsForValue().get(cacheName + ":" + key);
-        if(json == null)
-            return null;
+        try {
+            String json = redisTemplate.opsForValue().get(cacheName + ":" + key);
+            if(json == null)
+                return null;
 
-        JavaType javaType =
-                mapper.getTypeFactory()
-                        .constructType(returnType);
-
-        if(javaType.isTypeOrSubTypeOf(Page.class)) {
-
-            JavaType contentType =
-                    javaType.getBindings().getBoundType(0);
-
-            javaType =
+            JavaType javaType =
                     mapper.getTypeFactory()
-                            .constructParametricType(
-                                    PageImpl.class,
-                                    contentType
-                            );
+                            .constructType(returnType);
+
+            if(javaType.isTypeOrSubTypeOf(Page.class)) {
+
+                JavaType contentType =
+                        javaType.getBindings().getBoundType(0);
+
+                javaType =
+                        mapper.getTypeFactory()
+                                .constructParametricType(
+                                        PageImpl.class,
+                                        contentType
+                                );
+            }
+            var root = mapper.readTree(json);
+            String dataJson = root.get("data").toString();
+            T data = mapper.readValue(dataJson, javaType);
+            LocalDateTime freshUntil = mapper.treeToValue(root.get("freshUntil"), LocalDateTime.class);
+            return new CacheEnvelope<T>(data, freshUntil);
+        } catch (Exception e) {
+            log.error("Error accessing Redis for cache {}:{}", cacheName, key, e);
+            return null; // fall back to L1 cache or database
         }
-        var root = mapper.readTree(json);
-        String dataJson = root.get("data").toString();
-        T data = mapper.readValue(dataJson, javaType);
-        LocalDateTime freshUntil = mapper.treeToValue(root.get("freshUntil"), LocalDateTime.class);
-        return new CacheEnvelope<T>(data, freshUntil);
     }
 
     private <T> T loadWithLockAndSecondCheck(String cacheName,
