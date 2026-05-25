@@ -4,6 +4,7 @@ import com.innowise.userservice.application.dto.MessageResponseDto;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -51,7 +53,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<MessageResponseDto> handleGeneral(Exception ex) {
+        log.error("Unexpected error occurred", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new MessageResponseDto("An unexpected error occurred:  " + ex.getMessage()));
+                .body(new MessageResponseDto("An unexpected error occurred. "));
     }
 }
