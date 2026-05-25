@@ -43,15 +43,15 @@ public class UserControllerImpl implements UserController {
     }
 
     @PatchMapping("/{userId}/deactivate")
-    public ResponseEntity<MessageResponseDto> deactivateUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
+    public ResponseEntity<Void> deactivateUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
         service.deactivateUserById(id);
-        return ResponseEntity.ok(new MessageResponseDto("User deactivated successfully"));
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{userId}/activate")
-    public ResponseEntity<MessageResponseDto> activateUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
+    public ResponseEntity<Void> activateUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
         service.activateUserById(id);
-        return ResponseEntity.ok(new MessageResponseDto("User activated successfully"));
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping

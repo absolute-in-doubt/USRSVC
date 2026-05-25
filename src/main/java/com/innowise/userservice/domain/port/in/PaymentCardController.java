@@ -23,9 +23,9 @@ public interface PaymentCardController {
 
     ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(Long userId);
 
-    ResponseEntity<MessageResponseDto> deactivateCardById(Long id) throws PaymentCardNotFoundException;
+    ResponseEntity<Void> deactivateCardById(Long id) throws PaymentCardNotFoundException;
 
-    ResponseEntity<MessageResponseDto> activateCardById(Long id) throws PaymentCardNotFoundException;
+    ResponseEntity<Void> activateCardById(Long id) throws PaymentCardNotFoundException;
 
     ResponseEntity<MessageResponseDto> updateCard(@Valid UpdatePaymentCardDto updatePaymentCardDto, Long id)
             throws PaymentCardNotFoundException;

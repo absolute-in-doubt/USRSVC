@@ -44,15 +44,15 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     }
 
     @PatchMapping("/cards/{paymentCardId}/deactivate")
-    public ResponseEntity<MessageResponseDto> deactivateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
+    public ResponseEntity<Void> deactivateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.deactivateCardById(id);
-        return ResponseEntity.ok(new MessageResponseDto("Card deactivated successfully"));
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/cards/{paymentCardId}/activate")
-    public ResponseEntity<MessageResponseDto> activateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
+    public ResponseEntity<Void> activateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.activateCardById(id);
-        return ResponseEntity.ok(new MessageResponseDto("Card activated successfully"));
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/cards/{paymentCardId}")

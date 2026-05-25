@@ -21,9 +21,9 @@ public interface UserController {
     ResponseEntity<MessageResponseDto> addCardByUserId(@Valid CreatePaymentCardDto createPaymentCardDto, Long userId)
             throws UserNotFoundException, MaxPaymentCardsExceededException;
 
-    ResponseEntity<MessageResponseDto> deactivateUserById( Long id) throws UserNotFoundException;
+    ResponseEntity<Void> deactivateUserById( Long id) throws UserNotFoundException;
 
-    ResponseEntity<MessageResponseDto> activateUserById(Long id) throws UserNotFoundException;
+    ResponseEntity<Void> activateUserById(Long id) throws UserNotFoundException;
 
     ResponseEntity<Page<UserResponseDto>> getUsers(UserFilter filter, Pageable pageable);
 
