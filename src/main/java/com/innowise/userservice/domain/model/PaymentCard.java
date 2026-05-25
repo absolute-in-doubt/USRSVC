@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +17,7 @@ import java.time.LocalDateTime;
 @Getter @Setter
 @NoArgsConstructor
 @ToString
+@EntityListeners(AuditingEntityListener.class)
 public class PaymentCard {
     @SequenceGenerator(name = "payment_cards_id_gen", sequenceName = "payment_cards_id_seq", allocationSize = 50)
 
@@ -30,8 +34,11 @@ public class PaymentCard {
     @Column(name = "expiration_date")
     private LocalDate expirationDate;
     private boolean active;
-    @Column(name = "created_at")
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

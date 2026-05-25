@@ -10,14 +10,11 @@ import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PaymentCardMapper {
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "active", constant = "true")
     PaymentCard toEntity(CreatePaymentCardDto createPaymentCardDto);
 
     PaymentCardResponseDto toDto(PaymentCard paymentCard);
 
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     PaymentCard updateEntity(UpdatePaymentCardDto updatedPaymentCardDto, @MappingTarget PaymentCard paymentCard);
 
     List<PaymentCardResponseDto> toDtoList(List<PaymentCard> cards);

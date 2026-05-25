@@ -9,13 +9,10 @@ import org.mapstruct.*;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
 
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "active", constant = "true")
     User toEntity(CreateUserDto createUserDto);
 
     UserResponseDto toDto(User user);
 
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     void updateEntity(UpdateUserDto updateUserDto, @MappingTarget User user);
 }

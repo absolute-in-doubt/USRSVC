@@ -3,6 +3,9 @@ package com.innowise.userservice.domain.model;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +16,7 @@ import java.util.List;
 @Table(name = "users")
 @Getter @Setter
 @ToString
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     public User() {
@@ -34,8 +38,10 @@ public class User {
     private LocalDate birthDate;
     private String email;
     private boolean active;
-    @Column(name = "created_at")
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
