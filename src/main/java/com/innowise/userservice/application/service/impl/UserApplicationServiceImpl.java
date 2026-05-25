@@ -41,7 +41,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @Override
     @Transactional
     @CustomCaching(
-            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            evict = {
+                    @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
+            },
             put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
     )
     public UserResponseDto createUser(CreateUserDto createUserDto) {
@@ -59,7 +62,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
     @CustomCaching(
-            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            evict = {
+                    @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
+            },
             put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
     )
     public UserResponseDto updateUser(UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException {
@@ -81,15 +87,18 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @CustomCaching(
             evict = {
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
-                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true)
-            }
+                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
+            },
+            put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
     )
-    public void addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
+    public UserResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         PaymentCard card = paymentCardMapper.toEntity(createPaymentCardDto);
         log.debug("Mapped payment card in addCardById: {}", card);
         user.addCard(card);
         userRepository.save(user);
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -102,7 +111,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
     @CustomCaching(
-            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            evict = {
+                    @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
+            },
             put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
     )
     public UserResponseDto deactivateUserById(Long id) throws UserNotFoundException {
@@ -123,7 +135,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             backoff = @Backoff(delay = 100, multiplier = 1.3)
     )
     @CustomCaching(
-            evict = @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+            evict = {
+                    @CustomCacheEvict(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
+            },
             put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
     )
     public UserResponseDto activateUserById(Long id) throws UserNotFoundException {
@@ -140,9 +155,10 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     }
 
     @Override
-    @CustomCacheable(cacheName = CacheConfig.USERS_CACHE, keyArgumentIndexes = {0})
-    public UserResponseDto getUserById(Long id) throws UserNotFoundException {
-        return userMapper.toDto(userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id)));
+    @CustomCacheable(cacheName = CacheConfig.FULL_USERS_CACHE, keyArgumentIndexes = {0})
+    public FullUserResponseDto getUserById(Long userId) throws UserNotFoundException {
+       User user = userRepository.findByIdWithCards(userId);
+        return userMapper.toFullDto(user, paymentCardMapper.toDtoList(user.getCards()));
     }
 
     @Recover

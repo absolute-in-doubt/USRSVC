@@ -61,7 +61,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
+    public ResponseEntity<FullUserResponseDto> getUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
         return ResponseEntity.ok(service.getUserById(id));
     }
 }

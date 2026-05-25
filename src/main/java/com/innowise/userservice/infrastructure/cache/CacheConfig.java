@@ -19,6 +19,7 @@ public class CacheConfig {
     public static final String PAYMENT_CARDS_CACHE = "payment_cards_cache";
     public static final String PAYMENT_CARDS_VIA_USER_ID_CACHE = "pc_via_user_id_cache";
     public static final String PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE = "pc_filtered_and_paged_cache";
+    public static final String FULL_USERS_CACHE = "full_users_cache";
     public static final String USERS_CACHE = "users_cache";
     public static final String USERS_FILTERED_AND_PAGED_CACHE = "users_filtered_and_paged_cache";
     private static final String[] caches = {
@@ -26,7 +27,8 @@ public class CacheConfig {
             PAYMENT_CARDS_VIA_USER_ID_CACHE,
             PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE,
             USERS_CACHE,
-            USERS_FILTERED_AND_PAGED_CACHE
+            USERS_FILTERED_AND_PAGED_CACHE,
+            FULL_USERS_CACHE
     };
 
     private final CacheProperties cacheProperties;

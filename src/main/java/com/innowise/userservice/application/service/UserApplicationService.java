@@ -12,7 +12,7 @@ public interface UserApplicationService {
 
     UserResponseDto updateUser(UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException;
 
-    void addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException;
+    UserResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException;
 
     UserResponseDto deactivateUserById(Long id) throws UserNotFoundException;
 
@@ -20,5 +20,5 @@ public interface UserApplicationService {
 
     Page<UserResponseDto> getUsers(UserFilter filter, Pageable pageable);
 
-    UserResponseDto getUserById(Long id) throws UserNotFoundException;
+    FullUserResponseDto getUserById(Long id) throws UserNotFoundException;
 }

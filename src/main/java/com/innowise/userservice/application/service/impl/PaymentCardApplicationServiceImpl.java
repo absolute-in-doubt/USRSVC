@@ -67,7 +67,8 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
             evict = {
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0}),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
-                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true)
+                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
     public void deactivateCardById(Long id) throws PaymentCardNotFoundException {
@@ -89,7 +90,8 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
             evict = {
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0}),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
-                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true)
+                    @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
     public void activateCardById(Long id) throws PaymentCardNotFoundException {
@@ -118,7 +120,8 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
         evict = {
                 @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {1}),
                 @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
-                @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true)
+                @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
+                @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
         }
     )
     public void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id) throws PaymentCardNotFoundException {

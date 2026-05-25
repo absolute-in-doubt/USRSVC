@@ -135,7 +135,7 @@ class UserApplicationServiceImplTest {
     @Test
     void getUserById() throws UserNotFoundException {
         user = userRepository.save(user);
-        UserResponseDto result = service.getUserById(user.getId());
+        FullUserResponseDto result = service.getUserById(user.getId());
         assertEquals(result.active(), user.isActive());
         assertEquals(result.firstName(), user.getFirstName());
         assertEquals(result.lastName(), user.getLastName());

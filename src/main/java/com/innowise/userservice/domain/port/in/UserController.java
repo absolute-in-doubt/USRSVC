@@ -27,5 +27,5 @@ public interface UserController {
 
     ResponseEntity<Page<UserResponseDto>> getUsers(UserFilter filter, Pageable pageable);
 
-    ResponseEntity<UserResponseDto> getUserById(Long id) throws UserNotFoundException;
+    ResponseEntity<FullUserResponseDto> getUserById(Long id) throws UserNotFoundException;
 }
