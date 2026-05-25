@@ -7,10 +7,10 @@
         </encoder>
     </appender>
 
-    <logger name="org.springframework.core.env" level="TRACE"/>
-    <logger name="org.springframework.boot.context.properties" level="TRACE"/>
-    <logger name ="org.springframework.data.redis" level="DEBUG"/>
-    <logger name="org.springframework.boot.autoconfigure.data.redis" level="DEBUG"/>
+    <logger name="org.springframework.core.env" level="WARN"/>
+    <logger name="org.springframework.boot.context.properties" level="WARN"/>
+    <logger name ="org.springframework.data.redis" level="WARN"/>
+    <logger name="org.springframework.boot.autoconfigure.data.redis" level="WARN"/>
     <logger name="com.innowise.userservice" level="TRACE"/>
     <logger name="org.hibernate.SQL" level="WARN"/>
     <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
