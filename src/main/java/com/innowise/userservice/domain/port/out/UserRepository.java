@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
@@ -16,5 +18,5 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     void setActiveById(@Param("userId") Long userId, @Param("active")  boolean active);
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.cards WHERE u.id = :userId")
-    User findByIdWithCards(@Param("userId") Long userId);
+    Optional<User> findByIdWithCards(@Param("userId") Long userId);
 }

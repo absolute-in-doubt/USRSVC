@@ -1,4 +1,4 @@
-package com.innowise.userservice.application.service.impl;
+package com.innowise.userservice.application.service.impl.integration;
 
 import com.innowise.userservice.TestcontainersConfiguration;
 import com.innowise.userservice.application.dto.PaymentCardFilter;
@@ -8,7 +8,6 @@ import com.innowise.userservice.application.mapper.PaymentCardMapper;
 import com.innowise.userservice.application.service.PaymentCardApplicationService;
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.User;
-import com.innowise.userservice.domain.model.exception.FailedToPerformOperationException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.domain.port.out.UserRepository;
@@ -33,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import(TestcontainersConfiguration.class)
 @Testcontainers
 @SpringBootTest
-class PaymentCardApplicationServiceImplTest {
+class PaymentCardApplicationServiceImplIntegrationTest {
 
     @Autowired
     private PaymentCardRepository paymentCardRepository;

@@ -52,7 +52,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     @Override
     @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, keyArgumentIndexes = {0})
     public Page<PaymentCardResponseDto> getAllPaymentCards(PaymentCardFilter filter, Pageable pageable) {
-        return paymentCardRepository.findAll(PaymentCardSpecification.fromUserFilter(filter), pageable).map(paymentCardMapper::toDto);
+        return paymentCardRepository.findAll(PaymentCardSpecification.fromPaymentCardFilter(filter), pageable).map(paymentCardMapper::toDto);
     }
 
     @Override

@@ -18,7 +18,7 @@ public class PaymentCardSpecification {
     }
 
 
-    public static Specification<PaymentCard> fromUserFilter(PaymentCardFilter paymentCardFilter){
+    public static Specification<PaymentCard> fromPaymentCardFilter(PaymentCardFilter paymentCardFilter){
         return  Specification.allOf(
                 withUserFirstName(paymentCardFilter.userFirstName()),
                 withUserLastName(paymentCardFilter.userLastName())

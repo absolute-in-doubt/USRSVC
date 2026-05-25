@@ -156,7 +156,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @Override
     @CustomCacheable(cacheName = CacheConfig.FULL_USERS_CACHE, keyArgumentIndexes = {0})
     public FullUserResponseDto getUserById(Long userId) throws UserNotFoundException {
-       User user = userRepository.findByIdWithCards(userId);
+       User user = userRepository.findByIdWithCards(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return userMapper.toFullDto(user, paymentCardMapper.toDtoList(user.getCards()));
     }
 

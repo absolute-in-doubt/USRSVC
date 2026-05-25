@@ -1,4 +1,4 @@
-package com.innowise.userservice.application.service.impl;
+package com.innowise.userservice.application.service.impl.integration;
 
 import com.innowise.userservice.TestcontainersConfiguration;
 import com.innowise.userservice.application.dto.*;
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import(TestcontainersConfiguration.class)
 @Testcontainers
 @SpringBootTest
-class UserApplicationServiceImplTest {
+class UserApplicationServiceImplIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
