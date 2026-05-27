@@ -3,8 +3,6 @@ name: CI Pipeline
 on:
   push:
     branches: [ main, feature/USRSVC ]
-  pull_request:
-    branches: [ main, feature/USRSVC ]
 
 jobs:
   test:
@@ -26,10 +24,9 @@ jobs:
       - name: Build JAR package
         run: mvn clean package -DskipTests
 
-      - name: SonarQube Analysis
-        uses: sonarsource/sonarcloud-github-action@master
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Build Docker image
