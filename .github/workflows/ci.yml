@@ -34,8 +34,8 @@ jobs:
 
       - name: Docker tag
         run: |
-          docker tag userservice:${{ github.sha }} ghcr.io/innowise_userservice:latest
-          docker tag userservice:${{ github.sha }} ghcr.io/innowise_userservice:${{ github.sha }}
+          docker tag userservice:${{ github.sha }} ghcr.io/absolute-in-doubt/usrsvc:latest
+          docker tag userservice:${{ github.sha }} ghcr.io/absolute-in-doubt/usrsvc:${{ github.sha }}
 
       - name: Docker login
         uses: docker/login-action@v3
@@ -46,5 +46,5 @@ jobs:
 
       - name: Docker push
         run: |
-          docker push ghcr.io/innowise_userservice:latest
-          docker push ghcr.io/innowise_userservice:${{ github.sha }}
+          docker push ghcr.io/absolute-in-doubt/usrsvc:latest
+          docker push ghcr.io/absolute-in-doubt/usrsvc:${{ github.sha }}
