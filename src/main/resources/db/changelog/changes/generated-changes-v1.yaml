@@ -1,0 +1,127 @@
+databaseChangeLog:
+- changeSet:
+    id: 1778999067422-1
+    author: нео (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: payment_cards_id_seq
+        startValue: 1
+- changeSet:
+    id: 1778999067422-2
+    author: нео (generated)
+    changes:
+    - createSequence:
+        cacheSize: 1
+        cycle: false
+        dataType: bigint
+        incrementBy: 50
+        maxValue: 9223372036854775807
+        minValue: 1
+        sequenceName: users_id_seq
+        startValue: 1
+- changeSet:
+    id: 1778999067422-3
+    author: нео (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: active
+            type: BOOLEAN
+        - column:
+            name: expiration_date
+            type: date
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: INTEGER
+        - column:
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: payment_cards_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: user_id
+            type: BIGINT
+        - column:
+            name: holder
+            type: VARCHAR(255)
+        - column:
+            name: number
+            type: VARCHAR(255)
+        tableName: payment_cards
+- changeSet:
+    id: 1778999067422-4
+    author: нео (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: active
+            type: BOOLEAN
+        - column:
+            name: birth_date
+            type: date
+        - column:
+            constraints:
+              nullable: false
+            name: version
+            type: INTEGER
+        - column:
+            name: created_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: users_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: updated_at
+            type: TIMESTAMP WITHOUT TIME ZONE
+        - column:
+            name: email
+            type: VARCHAR(255)
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: surname
+            type: VARCHAR(255)
+        tableName: users
+- changeSet:
+    id: 1778999067422-5
+    author: нео (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_id
+        baseTableName: payment_cards
+        constraintName: fkbs8w6tjl44mr8778hwv1orct5
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: users
+        validate: true
+

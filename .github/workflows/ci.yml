@@ -1,0 +1,54 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, feature/USRSVC ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Run tests with Maven
+        run: mvn clean test
+
+      - name: Build JAR package
+        run: mvn clean package -DskipTests
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t userservice:${{ github.sha }} .
+
+      - name: Docker tag
+        run: |
+          docker tag userservice:${{ github.sha }} ghcr.io/absolute-in-doubt/usrsvc:latest
+          docker tag userservice:${{ github.sha }} ghcr.io/absolute-in-doubt/usrsvc:${{ github.sha }}
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker push
+        run: |
+          docker push ghcr.io/absolute-in-doubt/usrsvc:latest
+          docker push ghcr.io/absolute-in-doubt/usrsvc:${{ github.sha }}

@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: userservice
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        connection:
+          isolation: READ_COMMITTED
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: false
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+server:
+  port: 8080
+
+application:
+  profiling:
+    enabled: true
+  caching:
+    enabled: true
+    logging: true
+    local:
+      max-size: 1000
+      expiration-min: 1
+    remote:
+      stale-after-min: 10
+      ttl-min: 15
