@@ -32,7 +32,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
         return ResponseEntity.ok(service.getAllPaymentCards(filter, pageable));
     }
 
-    @GetMapping("/user/{userId}/cards")
+    @GetMapping("/users/{userId}/cards")
     public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(service.getCardsByUserId(userId));
     }

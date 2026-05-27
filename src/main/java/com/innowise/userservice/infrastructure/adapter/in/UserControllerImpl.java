@@ -37,8 +37,8 @@ public class UserControllerImpl implements UserController {
     @PostMapping("/{userId}/cards")
     public ResponseEntity<MessageResponseDto> addCardByUserId(@RequestBody CreatePaymentCardDto createPaymentCardDto,
                                                               @PathVariable("userId") Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
-        service.addCardByUserId(createPaymentCardDto, userId);
-        return ResponseEntity.ok(new MessageResponseDto("Card added successfully"));
+        UserResponseDto result = service.addCardByUserId(createPaymentCardDto, userId);
+        return ResponseEntity.created(URI.create("/api/v1/cards/" + result.id())).build();
     }
 
     @PatchMapping("/{userId}/deactivate")
