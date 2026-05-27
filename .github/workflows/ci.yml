@@ -1,4 +1,4 @@
-name: Run Tests
+name: CI Pipeline
 
 on:
   push:
@@ -22,3 +22,32 @@ jobs:
 
       - name: Run tests with Maven
         run: mvn clean test
+
+      - name: Build JAR package
+        run: mvn clean package -DskipTests
+
+      - name: SonarQube Analysis
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t userservice:${{ github.sha }} .
+
+      - name: Docker tag
+        run: |
+          docker tag userservice:${{ github.sha }} ghcr.io/${{ github.repository }}:latest
+          docker tag userservice:${{ github.sha }} ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker push
+        run: |
+          docker push ghcr.io/${{ github.repository }}:latest
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
