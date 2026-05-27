@@ -7,7 +7,6 @@ import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.in.UserController;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -55,8 +54,8 @@ public class UserControllerImpl implements UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UserResponseDto>> getUsers(@ParameterObject UserFilter filter,
-                                                          @ParameterObject @PageableDefault Pageable pageable) {
+    public ResponseEntity<PageResponseDto<UserResponseDto>> getUsers(@ParameterObject UserFilter filter,
+                                                                     @ParameterObject @PageableDefault Pageable pageable) {
         return ResponseEntity.ok(service.getUsers(filter, pageable));
     }
 

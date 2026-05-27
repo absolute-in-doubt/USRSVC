@@ -1,6 +1,7 @@
 package com.innowise.userservice.application.service.impl;
 
 import com.innowise.userservice.application.dto.*;
+import com.innowise.userservice.application.mapper.PageMapper;
 import com.innowise.userservice.application.mapper.PaymentCardMapper;
 import com.innowise.userservice.application.mapper.UserMapper;
 import com.innowise.userservice.application.service.UserApplicationService;
@@ -21,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -36,6 +36,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PageMapper pageMapper;
     private final PaymentCardMapper paymentCardMapper;
 
     @Override
@@ -149,8 +150,8 @@ public class UserApplicationServiceImpl implements UserApplicationService {
 
     @Override
     @CustomCacheable(cacheName = CacheConfig.USERS_FILTERED_AND_PAGED_CACHE, keyArgumentIndexes = {0,1})
-    public Page<UserResponseDto> getUsers(UserFilter filter, Pageable pageable) {
-        return userRepository.findAll(UserSpecification.fromUserFilter(filter), pageable).map(userMapper::toDto);
+    public PageResponseDto<UserResponseDto> getUsers(UserFilter filter, Pageable pageable) {
+        return pageMapper.toDto(userRepository.findAll(UserSpecification.fromUserFilter(filter), pageable).map(userMapper::toDto));
     }
 
     @Override

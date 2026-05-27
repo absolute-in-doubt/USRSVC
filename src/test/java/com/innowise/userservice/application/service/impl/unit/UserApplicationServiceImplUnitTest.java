@@ -1,6 +1,7 @@
 package com.innowise.userservice.application.service.impl.unit;
 
 import com.innowise.userservice.application.dto.*;
+import com.innowise.userservice.application.mapper.PageMapper;
 import com.innowise.userservice.application.mapper.PaymentCardMapper;
 import com.innowise.userservice.application.mapper.UserMapper;
 import com.innowise.userservice.application.service.impl.UserApplicationServiceImpl;
@@ -16,10 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -45,6 +43,9 @@ public class UserApplicationServiceImplUnitTest {
     @Mock
     private PaymentCardMapper paymentCardMapper;
 
+    @Mock
+    private PageMapper pageMapper;
+
     private UserApplicationServiceImpl service;
 
     private User user;
@@ -56,12 +57,14 @@ public class UserApplicationServiceImplUnitTest {
     private CreatePaymentCardDto createPaymentCardDto;
     private UserFilter userFilter;
     private Pageable pageable;
+    private PageResponseDto<UserResponseDto> pageResponse;
+    private PageResponseDto<UserResponseDto> emptyPageResponse;
     private List<User> users;
     private List<PaymentCard> paymentCards;
 
     @BeforeEach
     void setUp() {
-        service = new UserApplicationServiceImpl(userRepository, userMapper, paymentCardMapper);
+        service = new UserApplicationServiceImpl(userRepository, userMapper, pageMapper, paymentCardMapper);
 
         // Setup test data
         user = new User();
@@ -106,6 +109,14 @@ public class UserApplicationServiceImplUnitTest {
                 true
         );
 
+        UserResponseDto userResponseDto2 = new UserResponseDto(
+                2L,
+                "John",
+                "Doe",
+                "john.doe@example.com",
+                true
+        );
+
         fullUserResponseDto = new FullUserResponseDto(
                 1L,
                 "John",
@@ -137,6 +148,30 @@ public class UserApplicationServiceImplUnitTest {
 
         userFilter = new UserFilter("John", "Doe");
         pageable = PageRequest.of(0, 10);
+
+        pageResponse = new PageResponseDto<>(
+                List.of(userResponseDto, userResponseDto2),
+                false,
+                true,
+                true,
+                0,
+                2,
+                1,
+                2,
+                1
+                );
+
+        emptyPageResponse = new PageResponseDto<>(
+                List.of(),
+                true,
+                true,
+                true,
+                0,
+                0,
+                0,
+                0,
+                0
+        );
     }
 
     @Test
@@ -406,14 +441,15 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(userRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(userPage);
         Mockito.when(userMapper.toDto(user)).thenReturn(userResponseDto);
+        Mockito.when(pageMapper.toDto(Mockito.any(Page.class))).thenReturn(pageResponse);
 
-        Page<UserResponseDto> result = service.getUsers(userFilter, pageable);
+        PageResponseDto<UserResponseDto> result = service.getUsers(userFilter, pageable);
 
         assertNotNull(result);
-        assertEquals(users.size(), result.getTotalElements());
-        assertEquals(userResponseDto.id(), result.getContent().get(0).id());
-        assertEquals(userResponseDto.firstName(), result.getContent().get(0).firstName());
-        assertEquals(userResponseDto.lastName(), result.getContent().get(0).lastName());
+        assertEquals(users.size(), result.totalElements());
+        assertEquals(userResponseDto.id(), result.content().get(0).id());
+        assertEquals(userResponseDto.firstName(), result.content().get(0).firstName());
+        assertEquals(userResponseDto.lastName(), result.content().get(0).lastName());
 
         Mockito.verify(userRepository).findAll(any(Specification.class), eq(pageable));
         Mockito.verify(userMapper).toDto(user);
@@ -426,12 +462,13 @@ public class UserApplicationServiceImplUnitTest {
 
         Mockito.when(userRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(emptyPage);
+        Mockito.when(pageMapper.toDto(Mockito.any(Page.class))).thenReturn(emptyPageResponse);
 
-        Page<UserResponseDto> result = service.getUsers(userFilter, pageable);
+        PageResponseDto<UserResponseDto> result = service.getUsers(userFilter, pageable);
 
         assertNotNull(result);
-        assertEquals(0, result.getTotalElements());
-        assertTrue(result.getContent().isEmpty());
+        assertEquals(0, result.totalElements());
+        assertTrue(result.content().isEmpty());
 
         Mockito.verify(userRepository).findAll(any(Specification.class), eq(pageable));
         Mockito.verify(userMapper, Mockito.never()).toDto(any());

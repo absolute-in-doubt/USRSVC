@@ -3,7 +3,6 @@ package com.innowise.userservice.application.service;
 import com.innowise.userservice.application.dto.*;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface UserApplicationService {
@@ -18,7 +17,7 @@ public interface UserApplicationService {
 
     UserResponseDto activateUserById(Long id) throws UserNotFoundException;
 
-    Page<UserResponseDto> getUsers(UserFilter filter, Pageable pageable);
+    PageResponseDto<UserResponseDto> getUsers(UserFilter filter, Pageable pageable);
 
     FullUserResponseDto getUserById(Long id) throws UserNotFoundException;
 }

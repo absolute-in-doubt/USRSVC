@@ -4,12 +4,9 @@ import com.innowise.userservice.application.dto.*;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-
-import java.net.URI;
 
 @Validated
 public interface UserController {
@@ -25,7 +22,7 @@ public interface UserController {
 
     ResponseEntity<Void> activateUserById(Long id) throws UserNotFoundException;
 
-    ResponseEntity<Page<UserResponseDto>> getUsers(UserFilter filter, Pageable pageable);
+    ResponseEntity<PageResponseDto<UserResponseDto>> getUsers(UserFilter filter, Pageable pageable);
 
     ResponseEntity<FullUserResponseDto> getUserById(Long id) throws UserNotFoundException;
 }

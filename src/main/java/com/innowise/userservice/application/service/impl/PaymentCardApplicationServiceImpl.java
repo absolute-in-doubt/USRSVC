@@ -1,8 +1,10 @@
 package com.innowise.userservice.application.service.impl;
 
+import com.innowise.userservice.application.dto.PageResponseDto;
 import com.innowise.userservice.application.dto.PaymentCardFilter;
 import com.innowise.userservice.application.dto.PaymentCardResponseDto;
 import com.innowise.userservice.application.dto.UpdatePaymentCardDto;
+import com.innowise.userservice.application.mapper.PageMapper;
 import com.innowise.userservice.application.mapper.PaymentCardMapper;
 import com.innowise.userservice.application.service.PaymentCardApplicationService;
 import com.innowise.userservice.domain.model.PaymentCard;
@@ -23,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -40,6 +41,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
 
     private final PaymentCardRepository paymentCardRepository;
     private final PaymentCardMapper paymentCardMapper;
+    private final PageMapper pageMapper;
     private final EntityManager entityManager;
 
     @Override
@@ -51,8 +53,8 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
 
     @Override
     @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, keyArgumentIndexes = {0})
-    public Page<PaymentCardResponseDto> getAllPaymentCards(PaymentCardFilter filter, Pageable pageable) {
-        return paymentCardRepository.findAll(PaymentCardSpecification.fromPaymentCardFilter(filter), pageable).map(paymentCardMapper::toDto);
+    public PageResponseDto<PaymentCardResponseDto> getAllPaymentCards(PaymentCardFilter filter, Pageable pageable) {
+        return pageMapper.toDto(paymentCardRepository.findAll(PaymentCardSpecification.fromPaymentCardFilter(filter), pageable).map(paymentCardMapper::toDto));
     }
 
     @Override

@@ -144,18 +144,18 @@ public class TwoLevelCacheServiceImpl implements TwoLevelCacheService{
                     mapper.getTypeFactory()
                             .constructType(returnType);
 
-            if(javaType.isTypeOrSubTypeOf(Page.class)) {
-
-                JavaType contentType =
-                        javaType.getBindings().getBoundType(0);
-
-                javaType =
-                        mapper.getTypeFactory()
-                                .constructParametricType(
-                                        PageImpl.class,
-                                        contentType
-                                );
-            }
+//            if(javaType.isTypeOrSubTypeOf(Page.class)) {
+//
+//                JavaType contentType =
+//                        javaType.getBindings().getBoundType(0);
+//
+//                javaType =
+//                        mapper.getTypeFactory()
+//                                .constructParametricType(
+//                                        PageImpl.class,
+//                                        contentType
+//                                );
+//            }
             var root = mapper.readTree(json);
             String dataJson = root.get("data").toString();
             T data = mapper.readValue(dataJson, javaType);

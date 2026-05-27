@@ -1,21 +1,15 @@
 package com.innowise.userservice.infrastructure.adapter.in;
 
-import com.innowise.userservice.application.dto.MessageResponseDto;
-import com.innowise.userservice.application.dto.PaymentCardFilter;
-import com.innowise.userservice.application.dto.PaymentCardResponseDto;
-import com.innowise.userservice.application.dto.UpdatePaymentCardDto;
+import com.innowise.userservice.application.dto.*;
 import com.innowise.userservice.application.service.PaymentCardApplicationService;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.domain.port.in.PaymentCardController;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,9 +26,9 @@ public class PaymentCardControllerImpl implements PaymentCardController {
         return ResponseEntity.ok(service.getPaymentCardById(id));
     }
 
-    @GetMapping
-    public ResponseEntity<Page<PaymentCardResponseDto>> getAllCards(@Valid @ParameterObject PaymentCardFilter filter,
-                                                                    @ParameterObject @PageableDefault Pageable pageable){
+    @GetMapping("/cards")
+    public ResponseEntity<PageResponseDto<PaymentCardResponseDto>> getAllCards(@Valid @ParameterObject PaymentCardFilter filter,
+                                                                               @ParameterObject @PageableDefault Pageable pageable){
         return ResponseEntity.ok(service.getAllPaymentCards(filter, pageable));
     }
 

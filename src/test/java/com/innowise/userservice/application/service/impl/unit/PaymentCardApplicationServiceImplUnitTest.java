@@ -1,10 +1,12 @@
 package com.innowise.userservice.application.service.impl.unit;
 
+import com.innowise.userservice.application.dto.PageResponseDto;
 import com.innowise.userservice.application.dto.PaymentCardFilter;
 import com.innowise.userservice.application.dto.PaymentCardResponseDto;
 import com.innowise.userservice.application.dto.UpdatePaymentCardDto;
 import com.innowise.userservice.application.mapper.PaymentCardMapper;
 import com.innowise.userservice.application.mapper.PaymentCardMapperImpl;
+import com.innowise.userservice.application.mapper.impl.PageMapperImpl;
 import com.innowise.userservice.application.service.impl.PaymentCardApplicationServiceImpl;
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.User;
@@ -55,6 +57,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
         service = new PaymentCardApplicationServiceImpl(
                 paymentCardRepository,
                 new PaymentCardMapperImpl(),
+                new PageMapperImpl(),
                 em
         );
     }
@@ -168,11 +171,11 @@ public class PaymentCardApplicationServiceImplUnitTest {
         Mockito.when(paymentCardRepository.findAll(Mockito.any(Specification.class), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(paymentCards));
 
-        Page<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
+        PageResponseDto<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        PaymentCardResponseDto firstElement = result.getContent().get(0);
+        assertEquals(1, result.totalElements());
+        PaymentCardResponseDto firstElement = result.content().get(0);
         assertEquals(paymentCardResponseDto.id(), firstElement.id());
         assertEquals(paymentCardResponseDto.cardNumber(), firstElement.cardNumber());
         assertEquals(paymentCardResponseDto.holder(), firstElement.holder());
@@ -187,10 +190,10 @@ public class PaymentCardApplicationServiceImplUnitTest {
                 .thenReturn(new PageImpl(paymentCards));
 
         PaymentCardFilter filter = new PaymentCardFilter(null, null);
-        Page<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
+        PageResponseDto<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.totalElements());
 
 
         Mockito.verify(paymentCardRepository).findAll(Mockito.any(Specification.class), Mockito.eq(pageable));

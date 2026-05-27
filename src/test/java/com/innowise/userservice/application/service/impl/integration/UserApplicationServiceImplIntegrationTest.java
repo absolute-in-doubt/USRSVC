@@ -123,9 +123,9 @@ class UserApplicationServiceImplIntegrationTest {
     void getUsers() {
         user = userRepository.save(user);
         UserFilter filter = new UserFilter(user.getFirstName(), user.getLastName());
-        Page<UserResponseDto> result = service.getUsers(filter, pageable);
-        assertEquals(1, result.getTotalElements());
-        UserResponseDto firstElement = result.getContent().get(0);
+        PageResponseDto<UserResponseDto> result = service.getUsers(filter, pageable);
+        assertEquals(1, result.totalElements());
+        UserResponseDto firstElement = result.content().get(0);
         assertEquals(firstElement.active(), user.isActive());
         assertEquals(firstElement.firstName(), user.getFirstName());
         assertEquals(firstElement.lastName(), user.getLastName());

@@ -1,6 +1,7 @@
 package com.innowise.userservice.application.service.impl.integration;
 
 import com.innowise.userservice.TestcontainersConfiguration;
+import com.innowise.userservice.application.dto.PageResponseDto;
 import com.innowise.userservice.application.dto.PaymentCardFilter;
 import com.innowise.userservice.application.dto.PaymentCardResponseDto;
 import com.innowise.userservice.application.dto.UpdatePaymentCardDto;
@@ -124,11 +125,11 @@ class PaymentCardApplicationServiceImplIntegrationTest {
 
     @Test
     void getAllPaymentCards_Success() {
-        Page<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
+        PageResponseDto<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
         
         assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        PaymentCardResponseDto firstElement = result.getContent().get(0);
+        assertEquals(1, result.totalElements());
+        PaymentCardResponseDto firstElement = result.content().get(0);
         assertEquals(paymentCardResponseDto.id(), firstElement.id());
         assertEquals(paymentCardResponseDto.cardNumber(), firstElement.cardNumber());
         assertEquals(paymentCardResponseDto.holder(), firstElement.holder());
@@ -137,10 +138,10 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     @Test
     void getAllPaymentCards_EmptyFilter() {
         PaymentCardFilter filter = new PaymentCardFilter(null, null);
-        Page<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
+        PageResponseDto<PaymentCardResponseDto> result = service.getAllPaymentCards(filter, pageable);
         
         assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.totalElements());
     }
 
     @Test
