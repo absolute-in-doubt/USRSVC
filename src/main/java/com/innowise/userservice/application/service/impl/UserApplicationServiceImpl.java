@@ -52,7 +52,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
     )
     public UserResponseDto createUser(CreateUserDto createUserDto) {
-        User user = userRepository.save(userMapper.toEntity(createUserDto));
+        User user = userRepository.findById(createUserDto.userId()).orElseGet(() -> userRepository.save(userMapper.toEntity(createUserDto)));
         return userMapper.toDto(user);
     }
 
