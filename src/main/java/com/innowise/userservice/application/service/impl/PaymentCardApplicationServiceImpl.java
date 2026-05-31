@@ -132,6 +132,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
         }
     )
     public void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id) throws PaymentCardNotFoundException {
+        log.trace("All the cards that are currently in the DB: {}", paymentCardRepository.findAll());
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         entityManager.lock(paymentCard.getUser(), LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         paymentCardMapper.updateEntity(updatePaymentCardDto, paymentCard);

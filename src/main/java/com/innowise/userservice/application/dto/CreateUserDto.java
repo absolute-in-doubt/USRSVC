@@ -1,13 +1,11 @@
 package com.innowise.userservice.application.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
 public record CreateUserDto(
+        @Positive Long userId,
         @NotBlank @Size(max = 100) String firstName,
         @NotBlank @Size(max = 100) String lastName,
         @Past LocalDate birthDate,

@@ -9,6 +9,7 @@ import java.util.List;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
 
+    @Mapping(target="id", source = "userId")
     @Mapping(target = "active", constant = "true")
     User toEntity(CreateUserDto createUserDto);
 

@@ -6,10 +6,10 @@ import com.innowise.userservice.TestcontainersConfiguration;
 import com.innowise.userservice.application.dto.CreatePaymentCardDto;
 import com.innowise.userservice.application.dto.CreateUserDto;
 import com.innowise.userservice.application.dto.PaymentCardFilter;
-import com.innowise.userservice.application.dto.PageResponseDto;
-import com.innowise.userservice.application.dto.PaymentCardResponseDto;
 import com.innowise.userservice.application.dto.UpdatePaymentCardDto;
+import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.domain.port.out.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
+@Slf4j
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 @Testcontainers
@@ -44,12 +45,16 @@ class PaymentCardControllerImplTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PaymentCardRepository paymentCardRepository;
+
     private CreatePaymentCardDto createPaymentCardDto = new CreatePaymentCardDto(
             "1234567887654321",
             "John Doe",
             LocalDate.of(2100, 1, 1));
 
     private CreateUserDto createUserDto = new CreateUserDto(
+            1L,
                         "John",
                                 "Doe",
                         LocalDate.of(2000, 1,1),
@@ -61,6 +66,7 @@ class PaymentCardControllerImplTest {
     @BeforeEach
     public void setUp() throws Exception{
         userRepository.deleteAll();
+
 
         mockMvc.perform(post("/api/v1/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -76,6 +82,8 @@ class PaymentCardControllerImplTest {
                     String[] locationParts = r.getResponse().getHeader("location").split("/");
                     cardId[0] = Long.parseLong(locationParts[locationParts.length-1]);
         });
+        log.trace("Set up card with cardId: {}", cardId[0]);
+        log.trace("All the cards that are currently in the DB: {}", paymentCardRepository.findAll());
     }
 
     @Test
@@ -148,6 +156,9 @@ class PaymentCardControllerImplTest {
 
     @Test
     void updateCard() throws Exception {
+
+        log.trace("All the cards that are currently in the DB: {}", paymentCardRepository.findAll());
+
         UpdatePaymentCardDto updateDto = new UpdatePaymentCardDto(
                 "1111222233334444",
                 "Jane Doe",

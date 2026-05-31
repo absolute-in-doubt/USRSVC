@@ -53,6 +53,7 @@ class UserControllerImplTest {
             LocalDate.of(2100, 1, 1));
 
     private CreateUserDto createUserDto = new CreateUserDto(
+            1L,
             "John",
             "Doe",
             LocalDate.of(2000, 1,1),
@@ -85,6 +86,7 @@ class UserControllerImplTest {
     @Test
     void createUser() throws Exception {
         CreateUserDto newUserDto = new CreateUserDto(
+                1L,
                 "Jane",
                 "Smith",
                 LocalDate.of(1995, 5, 15),

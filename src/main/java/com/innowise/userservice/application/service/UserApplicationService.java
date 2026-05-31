@@ -11,7 +11,7 @@ public interface UserApplicationService {
 
     UserResponseDto updateUser(UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException;
 
-    UserResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException;
+    PaymentCardResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException;
 
     UserResponseDto deactivateUserById(Long id) throws UserNotFoundException;
 

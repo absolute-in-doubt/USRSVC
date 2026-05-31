@@ -279,7 +279,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
         Mockito.doNothing().when(em).lock(Mockito.any(User.class), Mockito.eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));
 
 
-        service.updateCard(updatePaymentCardDto, Mockito.anyLong());
+        service.updateCard(updatePaymentCardDto, 1L);
 
         Mockito.verify(paymentCardRepository).findById(Mockito.anyLong());
         Mockito.verify(em).lock(Mockito.any(User.class), Mockito.eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));

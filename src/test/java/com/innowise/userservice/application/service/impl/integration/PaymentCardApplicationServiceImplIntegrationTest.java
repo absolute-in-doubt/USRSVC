@@ -61,6 +61,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
         userRepository.deleteAll();
 
         user = new User();
+        user.setId(1L);
         user.setFirstName("John");
         user.setLastName("Doe");
         user.setEmail("john.doe@example.com");
@@ -68,6 +69,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
         user = userRepository.save(user);
 
         user2 = new User();
+        user2.setId(2L);
         user2.setFirstName("Jane");
         user2.setLastName("Smith");
         user2.setEmail("jane.smith@example.com");

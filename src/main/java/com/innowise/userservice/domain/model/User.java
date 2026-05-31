@@ -25,10 +25,7 @@ public class User {
 
     private static final int MAX_CARDS_COUNT = 5;
 
-    @SequenceGenerator(name = "users_id_gen", sequenceName = "users_id_seq", allocationSize = 50)
-
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_gen")
     private Long id;
     @Column(name = "name")
     private String firstName;

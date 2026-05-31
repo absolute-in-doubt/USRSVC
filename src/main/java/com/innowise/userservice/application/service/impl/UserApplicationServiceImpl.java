@@ -29,6 +29,9 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -89,17 +92,21 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             evict = {
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
-                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.USERS_CACHE, keyArgumentIndexes = {1})
             },
-            put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
+            put = @CustomCachePut(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keySpEL = "#result.id")
     )
-    public UserResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
+    public PaymentCardResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         PaymentCard card = paymentCardMapper.toEntity(createPaymentCardDto);
-        log.debug("Mapped payment card in addCardById: {}", card);
         user.addCard(card);
-        userRepository.save(user);
-        return userMapper.toDto(user);
+        user = userRepository.saveAndFlush(user);
+        PaymentCard savedCard = user.getCards()
+                .stream()
+                .max(Comparator.comparing(PaymentCard::getId))
+                .orElseThrow();
+        return paymentCardMapper.toDto(savedCard);
     }
 
     @Override
