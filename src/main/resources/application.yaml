@@ -43,3 +43,12 @@ application:
     remote:
       stale-after-min: 10
       ttl-min: 15
+  security:
+    jwksUrl: ${JWKS_URL}
+    paths:
+      publicPaths:
+        - /api/v1/auth/login
+      userPaths:
+        - /api/v1/auth/logout
+      adminPaths:
+        - /api/v1/admin/session/*
