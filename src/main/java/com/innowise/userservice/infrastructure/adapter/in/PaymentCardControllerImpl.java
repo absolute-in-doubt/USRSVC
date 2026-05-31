@@ -10,6 +10,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,34 +23,40 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     private final PaymentCardApplicationService service;
 
     @GetMapping("/cards/{paymentCardId}")
+    @Secured({"USER","ADMIN"})
     public ResponseEntity<PaymentCardResponseDto> getCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         return ResponseEntity.ok(service.getPaymentCardById(id));
     }
 
     @GetMapping("/cards")
+    @Secured({"ADMIN"})
     public ResponseEntity<PageResponseDto<PaymentCardResponseDto>> getAllCards(@Valid @ParameterObject PaymentCardFilter filter,
                                                                                @ParameterObject @PageableDefault Pageable pageable){
         return ResponseEntity.ok(service.getAllPaymentCards(filter, pageable));
     }
 
     @GetMapping("/users/{userId}/cards")
+    @Secured({"USER","ADMIN"})
     public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(service.getCardsByUserId(userId));
     }
 
     @PatchMapping("/cards/{paymentCardId}/deactivate")
+    @Secured({"USER","ADMIN"})
     public ResponseEntity<Void> deactivateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.deactivateCardById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/cards/{paymentCardId}/activate")
+    @Secured({"USER","ADMIN"})
     public ResponseEntity<Void> activateCardById(@PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.activateCardById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/cards/{paymentCardId}")
+    @Secured({"USER","ADMIN"})
     public ResponseEntity<MessageResponseDto> updateCard(@Valid @RequestBody UpdatePaymentCardDto updatePaymentCardDto,
                                                         @PathVariable("paymentCardId") Long id) throws PaymentCardNotFoundException {
         service.updateCard(updatePaymentCardDto, id);

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import tools.jackson.databind.ObjectMapper;
@@ -28,6 +29,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -67,6 +69,7 @@ class UserControllerImplTest {
         userRepository.deleteAll();
 
         mockMvc.perform(post("/api/v1/users")
+                .with(jwt().authorities(new SimpleGrantedAuthority("SERVICE")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(createUserDto))).andDo( r -> {
             String[] locationParts = r.getResponse().getHeader("location").split("/");
@@ -74,6 +77,7 @@ class UserControllerImplTest {
         });
 
         mockMvc.perform(post("/api/v1/users/" + userId[0] + "/cards")
+                .with(jwt().authorities(new SimpleGrantedAuthority("SERVICE")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(createPaymentCardDto)
                 )).andDo( r -> {
@@ -94,12 +98,14 @@ class UserControllerImplTest {
         );
 
         mockMvc.perform(post("/api/v1/users")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(newUserDto)))
                 .andExpect(status().is(HttpStatus.CREATED.value()))
                 .andExpect(header().exists("location"));
 
         mockMvc.perform(get("/api/v1/users")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN")))
                 .param("firstName", "Jane")
                 .param("lastName", "Smith"))
                 .andExpect(status().is(HttpStatus.OK.value()))
@@ -119,12 +125,14 @@ class UserControllerImplTest {
         );
 
         mockMvc.perform(put("/api/v1/users/" + userId[0])
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(updateDto)))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.message").value("User updated successfully"));
 
-        mockMvc.perform(get("/api/v1/users/" + userId[0]))
+        mockMvc.perform(get("/api/v1/users/" + userId[0])
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.firstName").value("Johnny"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
@@ -141,12 +149,14 @@ class UserControllerImplTest {
         );
 
         mockMvc.perform(post("/api/v1/users/" + userId[0] + "/cards")
+                .with(jwt().authorities(new SimpleGrantedAuthority("USER")))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(newCardDto)))
                 .andExpect(status().is(HttpStatus.CREATED.value()))
                 .andExpect(header().exists("location"));
 
-        mockMvc.perform(get("/api/v1/users/" + userId[0] + "/cards"))
+        mockMvc.perform(get("/api/v1/users/" + userId[0] + "/cards")
+                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$[0].cardNumber").value(createPaymentCardDto.cardNumber()))
                 .andExpect(jsonPath("$[0].holder").value(createPaymentCardDto.holder()))
@@ -158,23 +168,28 @@ class UserControllerImplTest {
 
     @Test
     void deactivateUserById() throws Exception {
-        mockMvc.perform(patch("/api/v1/users/" + userId[0] + "/deactivate"))
+        mockMvc.perform(patch("/api/v1/users/" + userId[0] + "/deactivate")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
-        mockMvc.perform(get("/api/v1/users/" + userId[0]))
+        mockMvc.perform(get("/api/v1/users/" + userId[0])
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(false));
     }
 
     @Test
     void activateUserById() throws Exception {
-        mockMvc.perform(patch("/api/v1/users/" + userId[0] + "/deactivate"))
+        mockMvc.perform(patch("/api/v1/users/" + userId[0] + "/deactivate")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
-        mockMvc.perform(patch("/api/v1/users/" + userId[0] + "/activate"))
+        mockMvc.perform(patch("/api/v1/users/" + userId[0] + "/activate")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
-        mockMvc.perform(get("/api/v1/users/" + userId[0]))
+        mockMvc.perform(get("/api/v1/users/" + userId[0])
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(true));
     }
@@ -185,6 +200,7 @@ class UserControllerImplTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
 
         mockMvc.perform(get("/api/v1/users")
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN")))
                 .param("firstName", filter.firstName())
                 .param("lastName", filter.lastName())
                 .param("page", "0")
@@ -207,7 +223,8 @@ class UserControllerImplTest {
 
     @Test
     void getUserById() throws Exception {
-        mockMvc.perform(get("/api/v1/users/" + userId[0]))
+        mockMvc.perform(get("/api/v1/users/" + userId[0])
+                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN"))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.id").value(userId[0]))
                 .andExpect(jsonPath("$.firstName").value("John"))

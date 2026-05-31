@@ -13,9 +13,7 @@ public record SecurityProperties(
 
 
     public record Paths(
-            Set<String> publicPaths,
-            Set<String> userPaths,
-            Set<String> adminPaths){}
+            Set<String> publicPaths){}
 
 }
 

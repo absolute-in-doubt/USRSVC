@@ -3,6 +3,7 @@ package com.innowise.userservice.infrastructure.security.config;
 import com.innowise.userservice.infrastructure.security.converter.JwtConverter;
 import com.innowise.userservice.infrastructure.security.model.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -17,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.AntPathMatcher;
 
 @Configuration
+@EnableConfigurationProperties(SecurityProperties.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -38,12 +40,6 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .requestCache(AbstractHttpConfigurer::disable)
                 .servletApi(Customizer.withDefaults())
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(properties.paths().publicPaths().toArray(String[]::new)).permitAll()
-                        .requestMatchers(properties.paths().userPaths().toArray(String[]::new)).hasAnyAuthority(Role.ADMIN.toString(), Role.USER.toString())
-                        .requestMatchers(properties.paths().adminPaths().toArray(String[]::new)).hasAuthority(Role.ADMIN.toString())
-                        .anyRequest().authenticated()
-                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenResolver(publicPathsBearerTokenResolver)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))

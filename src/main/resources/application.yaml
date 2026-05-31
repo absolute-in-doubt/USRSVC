@@ -47,8 +47,8 @@ application:
     jwksUrl: ${JWKS_URL}
     paths:
       publicPaths:
-        - /api/v1/auth/login
-      userPaths:
-        - /api/v1/auth/logout
-      adminPaths:
-        - /api/v1/admin/session/*
+        - /v3/api-docs.yaml
+        - /swagger-ui/*
+        - /swagger-ui.html
+        - /v3/api-docs/*
+        - /v3/api-docs
