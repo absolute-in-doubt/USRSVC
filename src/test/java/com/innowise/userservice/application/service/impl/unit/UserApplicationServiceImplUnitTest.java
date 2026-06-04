@@ -264,6 +264,7 @@ public class UserApplicationServiceImplUnitTest {
 
         PaymentCardResponseDto updatedResponseDto = new PaymentCardResponseDto(
                 2L,
+                user.getId(),
                 "9876543210987654",
                 "Jane Smith",
                 LocalDate.of(2029, 11, 30).toString(),
@@ -279,10 +280,11 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(paymentCardMapper.toDto(Mockito.any(PaymentCard.class)))
                 .thenReturn(updatedResponseDto);
 
-        PaymentCardResponseDto result = service.addCardByUserId(createPaymentCardDto, userId);
+        PaymentCardResponseDto result = service.addCardByUserId(createPaymentCardDto, userId, user.getId(), true);
 
         assertNotNull(result);
         assertEquals(updatedResponseDto.id(), result.id());
+        assertEquals(updatedResponseDto.userId(), result.userId());
         assertEquals(updatedResponseDto.cardNumber(), result.cardNumber());
         assertEquals(updatedResponseDto.holder(), result.holder());
         assertEquals(updatedResponseDto.active(), result.active());
@@ -299,7 +301,7 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> 
-            service.addCardByUserId(createPaymentCardDto, userId));
+            service.addCardByUserId(createPaymentCardDto, userId, userId, true));
 
         Mockito.verify(userRepository).findById(userId);
         Mockito.verify(paymentCardMapper, Mockito.never()).toEntity(any());
@@ -332,7 +334,7 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(paymentCardMapper.toEntity(createPaymentCardDto)).thenReturn(newCard);
 
         assertThrows(MaxPaymentCardsExceededException.class, () -> 
-            service.addCardByUserId(createPaymentCardDto, user2.getId()));
+            service.addCardByUserId(createPaymentCardDto, user2.getId(), user2.getId(), true));
 
         Mockito.verify(userRepository).findById(userId);
         Mockito.verify(paymentCardMapper).toEntity(createPaymentCardDto);
@@ -479,7 +481,7 @@ public class UserApplicationServiceImplUnitTest {
     void getUserById_Success() throws UserNotFoundException {
         Long userId = 1L;
         List<PaymentCardResponseDto> cardDtos = List.of(
-            new PaymentCardResponseDto(1L, "1234567890123456", "John Doe", "2028-12-31", true)
+            new PaymentCardResponseDto(1L, user.getId(), "1234567890123456", "John Doe", "2028-12-31", true)
         );
 
         Mockito.when(userRepository.findByIdWithCards(userId))
@@ -489,7 +491,7 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(userMapper.toFullDto(user, cardDtos))
                 .thenReturn(fullUserResponseDto);
 
-        FullUserResponseDto result = service.getUserById(userId);
+        FullUserResponseDto result = service.getUserById(userId, user.getId(), true);
 
         assertNotNull(result);
         assertEquals(fullUserResponseDto.id(), result.id());
@@ -509,7 +511,7 @@ public class UserApplicationServiceImplUnitTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> 
-            service.getUserById(userId));
+            service.getUserById(userId, userId, true));
 
         Mockito.verify(userRepository).findByIdWithCards(userId);
         Mockito.verify(paymentCardMapper, Mockito.never()).toDtoList(any());

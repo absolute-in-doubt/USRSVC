@@ -26,6 +26,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -69,9 +70,8 @@ class PaymentCardControllerImplTest {
     public void setUp() throws Exception{
         userRepository.deleteAll();
 
-
         mockMvc.perform(post("/api/v1/users")
-                .with(jwt().authorities(new SimpleGrantedAuthority("SERVICE")))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("1").claim("login", "test").claim("roles", List.of("SERVICE"))))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(createUserDto))).andDo( r -> {
                     String[] locationParts = r.getResponse().getHeader("location").split("/");
@@ -79,7 +79,7 @@ class PaymentCardControllerImplTest {
         });
 
         mockMvc.perform(post("/api/v1/users/" + userId[0] + "/cards")
-                .with(jwt().authorities(new SimpleGrantedAuthority("SERVICE")))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("SERVICE"))))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(createPaymentCardDto)
         )).andDo( r -> {
@@ -93,7 +93,7 @@ class PaymentCardControllerImplTest {
     @Test
     void getCardById() throws Exception {
         mockMvc.perform(get("/api/v1/cards/" + cardId[0])
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.cardNumber").value(createPaymentCardDto.cardNumber()))
                 .andExpect(jsonPath("$.holder").value(createPaymentCardDto.holder()))
@@ -107,7 +107,7 @@ class PaymentCardControllerImplTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
 
         mockMvc.perform(get("/api/v1/cards")
-                .with(jwt().authorities(new SimpleGrantedAuthority("ADMIN")))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("ADMIN"))))
                 .param("userFirstName", filter.userFirstName())
                 .param("userLastName", filter.userLastName())
                 .param("page", "0")
@@ -130,7 +130,7 @@ class PaymentCardControllerImplTest {
     @Test
     void getCardsByUserId() throws Exception {
         mockMvc.perform(get("/api/v1/users/" + userId[0] + "/cards")
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$[0].cardNumber").value(createPaymentCardDto.cardNumber()))
                 .andExpect(jsonPath("$[0].holder").value(createPaymentCardDto.holder()))
@@ -141,11 +141,11 @@ class PaymentCardControllerImplTest {
     @Test
     void deactivateCardById() throws Exception {
         mockMvc.perform(patch("/api/v1/cards/" + cardId[0] + "/deactivate")
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
         mockMvc.perform(get("/api/v1/cards/" + cardId[0])
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(false));
     }
@@ -153,15 +153,15 @@ class PaymentCardControllerImplTest {
     @Test
     void activateCardById() throws Exception {
         mockMvc.perform(patch("/api/v1/cards/" + cardId[0] + "/deactivate")
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
         mockMvc.perform(patch("/api/v1/cards/" + cardId[0] + "/activate")
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
 
         mockMvc.perform(get("/api/v1/cards/" + cardId[0])
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.active").value(true));
     }
@@ -179,14 +179,14 @@ class PaymentCardControllerImplTest {
         );
 
         mockMvc.perform(put("/api/v1/cards/" + cardId[0])
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER")))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER"))))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(updateDto)))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.message").value("Card updated successfully"));
 
         mockMvc.perform(get("/api/v1/cards/" + cardId[0])
-                .with(jwt().authorities(new SimpleGrantedAuthority("USER"))))
+                .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("" + userId[0]).claim("login", "test").claim("roles", List.of("USER")))))
                 .andExpect(status().is(HttpStatus.OK.value()))
                 .andExpect(jsonPath("$.cardNumber").value(updateDto.cardNumber()))
                 .andExpect(jsonPath("$.holder").value(updateDto.holder()))

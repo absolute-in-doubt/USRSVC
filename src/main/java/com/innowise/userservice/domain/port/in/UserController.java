@@ -16,6 +16,7 @@ public interface UserController {
     ResponseEntity<MessageResponseDto> updateUser(@Valid UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException;
 
     ResponseEntity<MessageResponseDto> addCardByUserId(@Valid CreatePaymentCardDto createPaymentCardDto, Long userId,
+            com.innowise.userservice.infrastructure.security.model.JwtUserDetails jwtUserDetails,
             org.springframework.security.core.Authentication authentication)
             throws UserNotFoundException, MaxPaymentCardsExceededException;
 
@@ -25,5 +26,7 @@ public interface UserController {
 
     ResponseEntity<PageResponseDto<UserResponseDto>> getUsers(UserFilter filter, Pageable pageable);
 
-    ResponseEntity<FullUserResponseDto> getUserById(Long id) throws UserNotFoundException;
+    ResponseEntity<FullUserResponseDto> getUserById(Long id,
+            com.innowise.userservice.infrastructure.security.model.JwtUserDetails jwtUserDetails,
+            org.springframework.security.core.Authentication authentication) throws UserNotFoundException;
 }

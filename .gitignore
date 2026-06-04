@@ -38,3 +38,5 @@ build/
 postgres.env
 app.env
 liquibase.properties
+!**/src/test/java/com/innowise/userservice/config
+!**/src/test/java/com/innowise/userservice/infrastructure/adapter/in

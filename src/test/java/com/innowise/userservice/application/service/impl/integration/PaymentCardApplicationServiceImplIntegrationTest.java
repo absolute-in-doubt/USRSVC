@@ -89,6 +89,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
         // Create DTOs
         paymentCardResponseDto = new PaymentCardResponseDto(
                 paymentCard.getId(),
+                user.getId(),
                 "1234567890123456",
                 "John Doe",
                 "2028-12-31",
@@ -109,10 +110,11 @@ class PaymentCardApplicationServiceImplIntegrationTest {
 
     @Test
     void getPaymentCardById_Success() throws PaymentCardNotFoundException {
-        PaymentCardResponseDto result = service.getPaymentCardById(paymentCard.getId());
+        PaymentCardResponseDto result = service.getPaymentCardById(paymentCard.getId(), user.getId(), true);
         
         assertNotNull(result);
         assertEquals(paymentCardResponseDto.id(), result.id());
+        assertEquals(paymentCardResponseDto.userId(), result.userId());
         assertEquals(paymentCardResponseDto.cardNumber(), result.cardNumber());
         assertEquals(paymentCardResponseDto.holder(), result.holder());
         assertEquals(paymentCardResponseDto.expirationDate(), result.expirationDate());
@@ -122,7 +124,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     @Test
     void getPaymentCardById_NotFound() {
         assertThrows(PaymentCardNotFoundException.class, () -> 
-            service.getPaymentCardById(999L));
+            service.getPaymentCardById(999L, user.getId(), true));
     }
 
     @Test
@@ -148,7 +150,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
 
     @Test
     void deactivateCardById_Success() throws PaymentCardNotFoundException {
-        service.deactivateCardById(paymentCard.getId());
+        service.deactivateCardById(paymentCard.getId(), user.getId(), true);
         
         PaymentCard updatedCard = paymentCardRepository.findById(paymentCard.getId()).orElseThrow();
         assertFalse(updatedCard.isActive());
@@ -157,7 +159,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     @Test
     void deactivateCardById_NotFound() {
         assertThrows(PaymentCardNotFoundException.class, () -> 
-            service.deactivateCardById(999L));
+            service.deactivateCardById(999L, user.getId(), true));
     }
 
     @Test
@@ -166,7 +168,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
         paymentCard.setActive(false);
         paymentCardRepository.save(paymentCard);
         
-        service.activateCardById(paymentCard.getId());
+        service.activateCardById(paymentCard.getId(), user.getId(), true);
         
         PaymentCard updatedCard = paymentCardRepository.findById(paymentCard.getId()).orElseThrow();
         assertTrue(updatedCard.isActive());
@@ -175,24 +177,25 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     @Test
     void activateCardById_NotFound() {
         assertThrows(PaymentCardNotFoundException.class, () -> 
-            service.activateCardById(999L));
+            service.activateCardById(999L, user.getId(), true));
     }
 
     @Test
     void getCardsByUserId_Success() {
-        List<PaymentCardResponseDto> result = service.getCardsByUserId(user.getId());
+        List<PaymentCardResponseDto> result = service.getCardsByUserId(user.getId(), user.getId(), true);
         
         assertNotNull(result);
         assertEquals(1, result.size());
         PaymentCardResponseDto firstCard = result.get(0);
         assertEquals(paymentCardResponseDto.id(), firstCard.id());
+        assertEquals(paymentCardResponseDto.userId(), firstCard.userId());
         assertEquals(paymentCardResponseDto.cardNumber(), firstCard.cardNumber());
         assertEquals(paymentCardResponseDto.holder(), firstCard.holder());
     }
 
     @Test
     void getCardsByUserId_EmptyList() {
-        List<PaymentCardResponseDto> result = service.getCardsByUserId(user2.getId());
+        List<PaymentCardResponseDto> result = service.getCardsByUserId(user2.getId(), user2.getId(), true);
         
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -200,7 +203,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
 
     @Test
     void updateCard_Success() throws PaymentCardNotFoundException {
-        service.updateCard(updatePaymentCardDto, paymentCard.getId());
+        service.updateCard(updatePaymentCardDto, paymentCard.getId(), user.getId(), true);
         
         PaymentCard updatedCard = paymentCardRepository.findById(paymentCard.getId()).orElseThrow();
         assertEquals(updatePaymentCardDto.cardNumber(), updatedCard.getCardNumber());
@@ -212,6 +215,6 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     @Test
     void updateCard_NotFound() {
         assertThrows(PaymentCardNotFoundException.class, () -> 
-            service.updateCard(updatePaymentCardDto, 999L));
+            service.updateCard(updatePaymentCardDto, 999L, user.getId(), true));
     }
 }

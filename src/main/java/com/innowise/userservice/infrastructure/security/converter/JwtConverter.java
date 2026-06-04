@@ -27,6 +27,7 @@ public class JwtConverter implements Converter<Jwt, AbstractAuthenticationToken>
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
         List<String> roles = jwt.getClaimAsStringList(JwtClaim.ROLES);
+        log.info("JWT roles claim: {}", jwt.getClaimAsStringList(JwtClaim.ROLES));
         Collection<GrantedAuthority> authorities = roles == null ? List.of() :
                 roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
         log.debug("Request has the following roles: {}", authorities);

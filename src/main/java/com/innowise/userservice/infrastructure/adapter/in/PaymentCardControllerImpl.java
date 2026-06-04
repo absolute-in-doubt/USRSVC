@@ -11,9 +11,9 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,15 +28,11 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     @GetMapping("/cards/{paymentCardId}")
     @Secured({"USER","ADMIN"})
     public ResponseEntity<PaymentCardResponseDto> getCardById(@PathVariable("paymentCardId") Long id,
+            @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
             Authentication authentication) throws PaymentCardNotFoundException {
-        PaymentCardResponseDto card = service.getPaymentCardById(id);
-        JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
-        boolean hasAdmin = authentication.getAuthorities().stream()
+        boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
-
-        if (!hasAdmin && !jwtUserDetails.userId().equals(card.userId())) {
-            throw new AccessDeniedException("Users can only access their own cards");
-        }
+        PaymentCardResponseDto card = service.getPaymentCardById(id, jwtUserDetails.userId(), isAdmin);
         return ResponseEntity.ok(card);
     }
 
@@ -50,46 +46,32 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     @GetMapping("/users/{userId}/cards")
     @Secured({"USER","ADMIN"})
     public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@PathVariable("userId") Long userId,
+            @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
             Authentication authentication) {
-        JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
-        boolean hasAdmin = authentication.getAuthorities().stream()
+        boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
-
-        if (!hasAdmin && !jwtUserDetails.userId().equals(userId)) {
-            throw new AccessDeniedException("Users can only access their own cards");
-        }
-        return ResponseEntity.ok(service.getCardsByUserId(userId));
+        return ResponseEntity.ok(service.getCardsByUserId(userId, jwtUserDetails.userId(), isAdmin));
     }
 
     @PatchMapping("/cards/{paymentCardId}/deactivate")
     @Secured({"USER","ADMIN"})
     public ResponseEntity<Void> deactivateCardById(@PathVariable("paymentCardId") Long id,
+            @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
             Authentication authentication) throws PaymentCardNotFoundException {
-        PaymentCardResponseDto card = service.getPaymentCardById(id);
-        JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
-        boolean hasAdmin = authentication.getAuthorities().stream()
+        boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
-
-        if (!hasAdmin && !jwtUserDetails.userId().equals(card.userId())) {
-            throw new AccessDeniedException("Users can only access their own cards");
-        }
-        service.deactivateCardById(id);
+        service.deactivateCardById(id, jwtUserDetails.userId(), isAdmin);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/cards/{paymentCardId}/activate")
     @Secured({"USER","ADMIN"})
     public ResponseEntity<Void> activateCardById(@PathVariable("paymentCardId") Long id,
+            @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
             Authentication authentication) throws PaymentCardNotFoundException {
-        PaymentCardResponseDto card = service.getPaymentCardById(id);
-        JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
-        boolean hasAdmin = authentication.getAuthorities().stream()
+        boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
-
-        if (!hasAdmin && !jwtUserDetails.userId().equals(card.userId())) {
-            throw new AccessDeniedException("Users can only access their own cards");
-        }
-        service.activateCardById(id);
+        service.activateCardById(id, jwtUserDetails.userId(), isAdmin);
         return ResponseEntity.noContent().build();
     }
 
@@ -97,16 +79,11 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     @Secured({"USER","ADMIN"})
     public ResponseEntity<MessageResponseDto> updateCard(@Valid @RequestBody UpdatePaymentCardDto updatePaymentCardDto,
                                                         @PathVariable("paymentCardId") Long id,
+                                                        @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
                                                         Authentication authentication) throws PaymentCardNotFoundException {
-        PaymentCardResponseDto card = service.getPaymentCardById(id);
-        JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
-        boolean hasAdmin = authentication.getAuthorities().stream()
+        boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
-
-        if (!hasAdmin && !jwtUserDetails.userId().equals(card.userId())) {
-            throw new AccessDeniedException("Users can only access their own cards");
-        }
-        service.updateCard(updatePaymentCardDto, id);
+        service.updateCard(updatePaymentCardDto, id, jwtUserDetails.userId(), isAdmin);
         return ResponseEntity.ok(new MessageResponseDto("Card updated successfully"));
     }
 }

@@ -11,10 +11,9 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -46,16 +45,11 @@ public class UserControllerImpl implements UserController {
     public ResponseEntity<MessageResponseDto> addCardByUserId(
             @RequestBody CreatePaymentCardDto createPaymentCardDto,
             @PathVariable("userId") Long userId,
+            @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
             Authentication authentication) throws UserNotFoundException, MaxPaymentCardsExceededException {
-        JwtUserDetails jwtUserDetails = (JwtUserDetails) authentication.getPrincipal();
-        boolean hasAdminOrService = authentication.getAuthorities().stream()
+        boolean isAdminOrService = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("SERVICE"));
-
-        if (!hasAdminOrService && !jwtUserDetails.userId().equals(userId)) {
-            throw new AccessDeniedException("Users can only access their own resources");
-        }
-
-        PaymentCardResponseDto result = service.addCardByUserId(createPaymentCardDto, userId);
+        PaymentCardResponseDto result = service.addCardByUserId(createPaymentCardDto, userId, jwtUserDetails.userId(), isAdminOrService);
         return ResponseEntity.created(URI.create("/api/v1/cards/" + result.id())).build();
     }
 
@@ -83,7 +77,11 @@ public class UserControllerImpl implements UserController {
 
     @GetMapping("/{userId}")
     @Secured({"ADMIN", "USER"})
-    public ResponseEntity<FullUserResponseDto> getUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
-        return ResponseEntity.ok(service.getUserById(id));
+    public ResponseEntity<FullUserResponseDto> getUserById(@PathVariable("userId") Long id,
+            @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
+            Authentication authentication) throws UserNotFoundException {
+        boolean isAdminOrUser = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("USER"));
+        return ResponseEntity.ok(service.getUserById(id, jwtUserDetails.userId(), isAdminOrUser));
     }
 }

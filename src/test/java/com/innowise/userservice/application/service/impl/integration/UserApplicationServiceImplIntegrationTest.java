@@ -129,7 +129,7 @@ class UserApplicationServiceImplIntegrationTest {
     @Test
     void addCardByUserId() throws UserNotFoundException, MaxPaymentCardsExceededException {
         user = userRepository.save(user);
-        service.addCardByUserId(createPaymentCardDto, user.getId());
+        service.addCardByUserId(createPaymentCardDto, user.getId(), user.getId(), true);
         user = userRepository.findById(user.getId()).orElseThrow();
         List<PaymentCard> pcs = pcRepo.findByUserId(user.getId());
         PaymentCard paymentCardResult = pcs.getFirst();
@@ -169,7 +169,7 @@ class UserApplicationServiceImplIntegrationTest {
     @Test
     void getUserById() throws UserNotFoundException {
         user = userRepository.save(user);
-        FullUserResponseDto result = service.getUserById(user.getId());
+        FullUserResponseDto result = service.getUserById(user.getId(), user.getId(), true);
         assertEquals(result.active(), user.isActive());
         assertEquals(result.firstName(), user.getFirstName());
         assertEquals(result.lastName(), user.getLastName());

@@ -11,15 +11,15 @@ import java.util.List;
 
 public interface PaymentCardApplicationService {
 
-    PaymentCardResponseDto getPaymentCardById(Long id) throws PaymentCardNotFoundException;
+    PaymentCardResponseDto getPaymentCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException;
 
     PageResponseDto<PaymentCardResponseDto> getAllPaymentCards(PaymentCardFilter filter, Pageable pageable);
 
-    PaymentCardResponseDto deactivateCardById(Long id) throws PaymentCardNotFoundException;
+    PaymentCardResponseDto deactivateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException;
 
-    PaymentCardResponseDto activateCardById(Long id) throws PaymentCardNotFoundException;
+    PaymentCardResponseDto activateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException;
 
-    List<PaymentCardResponseDto> getCardsByUserId(Long userId);
+    List<PaymentCardResponseDto> getCardsByUserId(Long userId, Long authenticatedUserId, boolean isAdmin);
 
-    void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id) throws PaymentCardNotFoundException;
+    void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException;
 }
