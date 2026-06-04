@@ -15,7 +15,8 @@ public interface UserController {
 
     ResponseEntity<MessageResponseDto> updateUser(@Valid UpdateUserDto updateUserDto, Long userId) throws UserNotFoundException;
 
-    ResponseEntity<MessageResponseDto> addCardByUserId(@Valid CreatePaymentCardDto createPaymentCardDto, Long userId)
+    ResponseEntity<MessageResponseDto> addCardByUserId(@Valid CreatePaymentCardDto createPaymentCardDto, Long userId,
+            org.springframework.security.core.Authentication authentication)
             throws UserNotFoundException, MaxPaymentCardsExceededException;
 
     ResponseEntity<Void> deactivateUserById( Long id) throws UserNotFoundException;
