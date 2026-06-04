@@ -1,7 +1,7 @@
 package com.innowise.userservice.infrastructure.security.config;
 
 import com.innowise.userservice.infrastructure.security.converter.JwtConverter;
-import com.innowise.userservice.infrastructure.security.model.Role;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +19,7 @@ import org.springframework.util.AntPathMatcher;
 
 @Configuration
 @EnableConfigurationProperties(SecurityProperties.class)
+@EnableMethodSecurity(securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -32,7 +33,7 @@ public class SecurityConfig {
 
         http
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // отключает SessionManagementFilter
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .headers(Customizer.withDefaults())
                 .cors(Customizer.withDefaults())
@@ -40,6 +41,9 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .requestCache(AbstractHttpConfigurer::disable)
                 .servletApi(Customizer.withDefaults())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()
+                )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenResolver(publicPathsBearerTokenResolver)
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))

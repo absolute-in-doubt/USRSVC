@@ -55,7 +55,6 @@ public class UserControllerImpl implements UserController {
     }
 
     @PatchMapping("/{userId}/activate")
-
     @Secured({"ADMIN"})
     public ResponseEntity<Void> activateUserById(@PathVariable("userId") Long id) throws UserNotFoundException {
         service.activateUserById(id);

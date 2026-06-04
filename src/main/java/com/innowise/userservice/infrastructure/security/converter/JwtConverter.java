@@ -36,7 +36,6 @@ public class JwtConverter implements Converter<Jwt, AbstractAuthenticationToken>
 
         JwtUserDetails userDetails = new JwtUserDetails(Long.parseLong(userId), login);
 
-        //Here DeviceInfo isn't used
         return new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
     }
 }
