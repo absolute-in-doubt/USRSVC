@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   packages: write
+  pull-requests: read
 
 jobs:
   test:
@@ -29,7 +30,7 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: sonarsource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
