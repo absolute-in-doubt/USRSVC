@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestCache(AbstractHttpConfigurer::disable)
                 .servletApi(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(properties.paths().publicPaths().toArray(String[]::new)).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
