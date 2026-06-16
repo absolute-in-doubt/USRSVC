@@ -7,6 +7,7 @@ import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.in.UserController;
 import com.innowise.userservice.infrastructure.security.model.JwtUserDetails;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -80,6 +82,7 @@ public class UserControllerImpl implements UserController {
     public ResponseEntity<FullUserResponseDto> getUserById(@PathVariable("userId") Long id,
             @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
             Authentication authentication) throws UserNotFoundException {
+        log.trace("Received a request to GET user by Id form user with userId: {} and roles: {}", id, authentication.getAuthorities());
         boolean isAdminOrUser = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("USER"));
         return ResponseEntity.ok(service.getUserById(id, jwtUserDetails.userId(), isAdminOrUser));
