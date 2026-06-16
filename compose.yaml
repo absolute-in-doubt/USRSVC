@@ -1,25 +1,53 @@
 services:
   app:
+    container_name: 'userservice'
     build: .
     env_file:
-      - app.env
+      - env/app.env
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      - postgres-1
       - redis
 
-  postgres:
+  postgres-1:
+    container_name: 'usrsvc_userservice_postgres'
     image: 'postgres:15'
     env_file:
-      - postgres.env
+      - env/postgres.env
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data-1:/var/lib/postgresql/data
   redis:
     image: 'redis:latest'
     ports:
       - '6379:6379'
+
+  authservice:
+    image: 'ghcr.io/absolute-in-doubt/authsvc:latest'
+    pull_policy: always
+    env_file:
+      - env/auth.env
+      - env/jwks.env
+      - env/client-secrets.env
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-2
+
+  postgres-2:
+    container_name: 'usrsvc_authservice_postgres'
+    image: 'postgres:15'
+    environment:
+      - POSTGRES_DB=auth_service_db
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=myuser
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data-2:/var/lib/postgresql/data
+
 volumes:
-  postgres_data:
+  postgres_data-1:
+  postgres_data-2:
