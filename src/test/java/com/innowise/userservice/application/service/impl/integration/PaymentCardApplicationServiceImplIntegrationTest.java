@@ -9,6 +9,7 @@ import com.innowise.userservice.application.mapper.PaymentCardMapper;
 import com.innowise.userservice.application.service.PaymentCardApplicationService;
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.User;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.domain.port.out.UserRepository;
@@ -109,7 +110,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void getPaymentCardById_Success() throws PaymentCardNotFoundException {
+    void getPaymentCardById_Success() throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCardResponseDto result = service.getPaymentCardById(paymentCard.getId(), user.getId(), true);
         
         assertNotNull(result);
@@ -149,7 +150,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void deactivateCardById_Success() throws PaymentCardNotFoundException {
+    void deactivateCardById_Success() throws PaymentCardNotFoundException, AccessDeniedException {
         service.deactivateCardById(paymentCard.getId(), user.getId(), true);
         
         PaymentCard updatedCard = paymentCardRepository.findById(paymentCard.getId()).orElseThrow();
@@ -163,7 +164,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void activateCardById_Success() throws PaymentCardNotFoundException {
+    void activateCardById_Success() throws PaymentCardNotFoundException, AccessDeniedException {
         // First deactivate the card
         paymentCard.setActive(false);
         paymentCardRepository.save(paymentCard);
@@ -181,7 +182,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void getCardsByUserId_Success() {
+    void getCardsByUserId_Success() throws AccessDeniedException {
         List<PaymentCardResponseDto> result = service.getCardsByUserId(user.getId(), user.getId(), true);
         
         assertNotNull(result);
@@ -194,7 +195,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void getCardsByUserId_EmptyList() {
+    void getCardsByUserId_EmptyList() throws AccessDeniedException {
         List<PaymentCardResponseDto> result = service.getCardsByUserId(user2.getId(), user2.getId(), true);
         
         assertNotNull(result);
@@ -202,7 +203,7 @@ class PaymentCardApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void updateCard_Success() throws PaymentCardNotFoundException {
+    void updateCard_Success() throws PaymentCardNotFoundException, AccessDeniedException {
         service.updateCard(updatePaymentCardDto, paymentCard.getId(), user.getId(), true);
         
         PaymentCard updatedCard = paymentCardRepository.findById(paymentCard.getId()).orElseThrow();

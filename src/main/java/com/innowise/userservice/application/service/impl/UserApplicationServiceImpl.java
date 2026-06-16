@@ -98,7 +98,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             },
             put = @CustomCachePut(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keySpEL = "#result.id")
     )
-    public PaymentCardResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId, Long authenticatedUserId, boolean isAdminOrService) throws UserNotFoundException, MaxPaymentCardsExceededException {
+    public PaymentCardResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId, Long authenticatedUserId, boolean isAdminOrService) throws UserNotFoundException, MaxPaymentCardsExceededException, AccessDeniedException {
         if (!isAdminOrService && !userId.equals(authenticatedUserId)) {
             throw new AccessDeniedException("Users can only access their own resources");
         }
@@ -167,8 +167,9 @@ public class UserApplicationServiceImpl implements UserApplicationService {
 
     @Override
     @CustomCacheable(cacheName = CacheConfig.FULL_USERS_CACHE, keyArgumentIndexes = {0})
-    public FullUserResponseDto getUserById(Long userId, Long authenticatedUserId, boolean isAdminOrUser) throws UserNotFoundException {
-        if (!isAdminOrUser && !userId.equals(authenticatedUserId)) {
+    public FullUserResponseDto getUserById(Long userId, Long authenticatedUserId, boolean isAdmin) throws UserNotFoundException, AccessDeniedException {
+        log.trace("Is admin: {}", isAdmin);
+        if (!isAdmin && !userId.equals(authenticatedUserId)) {
             throw new AccessDeniedException("Users can only access their own resources");
         }
        User user = userRepository.findByIdWithCards(userId).orElseThrow(() -> new UserNotFoundException(userId));

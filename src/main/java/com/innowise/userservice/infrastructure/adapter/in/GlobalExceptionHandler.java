@@ -54,6 +54,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<MessageResponseDto> handleAccessDenied(AccessDeniedException ex) {
+        log.error("Caught AccessDeniedException in the GlobalExceptionHandler");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponseDto(ex.getMessage()));
     }
 

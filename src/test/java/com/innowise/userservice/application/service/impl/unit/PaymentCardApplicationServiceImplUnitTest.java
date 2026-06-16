@@ -10,6 +10,7 @@ import com.innowise.userservice.application.mapper.impl.PageMapperImpl;
 import com.innowise.userservice.application.service.impl.PaymentCardApplicationServiceImpl;
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.User;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.infrastructure.persistence.specification.PaymentCardSpecification;
@@ -137,7 +138,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
     }
 
     @Test
-    void getPaymentCardById_Success() throws PaymentCardNotFoundException {
+    void getPaymentCardById_Success() throws PaymentCardNotFoundException, AccessDeniedException {
         Mockito.when(paymentCardRepository.findById(Mockito.anyLong()))
                 .thenAnswer(
                         invocationOnMock ->
@@ -202,7 +203,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
     }
 
     @Test
-    void deactivateCardById_Success() throws PaymentCardNotFoundException {
+    void deactivateCardById_Success() throws PaymentCardNotFoundException, AccessDeniedException {
         Mockito.when(paymentCardRepository.findById(Mockito.anyLong()))
                 .thenReturn(java.util.Optional.ofNullable(paymentCard));
         Mockito.doNothing().when(paymentCardRepository).setActiveById(Mockito.anyLong(),Mockito.anyBoolean());
@@ -225,7 +226,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
     }
 
     @Test
-    void activateCardById_Success() throws PaymentCardNotFoundException {
+    void activateCardById_Success() throws PaymentCardNotFoundException, AccessDeniedException {
 
         Mockito.when(paymentCardRepository.findById(Mockito.anyLong()))
                 .thenReturn(java.util.Optional.ofNullable(paymentCard));
@@ -250,7 +251,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
     }
 
     @Test
-    void getCardsByUserId_Success() {
+    void getCardsByUserId_Success() throws AccessDeniedException {
         Mockito.when(paymentCardRepository.findByUserId(Mockito.anyLong()))
                 .thenReturn(paymentCards);
 
@@ -266,7 +267,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
     }
 
     @Test
-    void getCardsByUserId_EmptyList() {
+    void getCardsByUserId_EmptyList() throws AccessDeniedException {
         Mockito.when(paymentCardRepository.findByUserId(Mockito.anyLong()))
                 .thenReturn(Collections.emptyList());
         List<PaymentCardResponseDto> result = service.getCardsByUserId(Mockito.anyLong(), user.getId(), true);
@@ -276,7 +277,7 @@ public class PaymentCardApplicationServiceImplUnitTest {
     }
 
     @Test
-    void updateCard_Success() throws PaymentCardNotFoundException {
+    void updateCard_Success() throws PaymentCardNotFoundException, AccessDeniedException {
         Mockito.when(paymentCardRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.of(paymentCard));
         Mockito.doNothing().when(em).lock(Mockito.any(User.class), Mockito.eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));

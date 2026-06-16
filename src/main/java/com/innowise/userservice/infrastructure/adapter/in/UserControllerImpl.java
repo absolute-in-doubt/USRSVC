@@ -2,6 +2,7 @@ package com.innowise.userservice.infrastructure.adapter.in;
 
 import com.innowise.userservice.application.dto.*;
 import com.innowise.userservice.application.service.UserApplicationService;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.in.UserController;
@@ -48,7 +49,7 @@ public class UserControllerImpl implements UserController {
             @RequestBody CreatePaymentCardDto createPaymentCardDto,
             @PathVariable("userId") Long userId,
             @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
-            Authentication authentication) throws UserNotFoundException, MaxPaymentCardsExceededException {
+            Authentication authentication) throws UserNotFoundException, MaxPaymentCardsExceededException, AccessDeniedException {
         boolean isAdminOrService = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("SERVICE"));
         PaymentCardResponseDto result = service.addCardByUserId(createPaymentCardDto, userId, jwtUserDetails.userId(), isAdminOrService);
@@ -81,10 +82,8 @@ public class UserControllerImpl implements UserController {
     @Secured({"ADMIN", "USER"})
     public ResponseEntity<FullUserResponseDto> getUserById(@PathVariable("userId") Long id,
             @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
-            Authentication authentication) throws UserNotFoundException {
-        log.trace("Received a request to GET user by Id form user with userId: {} and roles: {}", id, authentication.getAuthorities());
-        boolean isAdminOrUser = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("USER"));
-        return ResponseEntity.ok(service.getUserById(id, jwtUserDetails.userId(), isAdminOrUser));
+            Authentication authentication) throws UserNotFoundException, AccessDeniedException {
+        log.trace("Received a request to GET user ({}) by Id from user with userId: {} and roles: {}", id, jwtUserDetails.userId(), authentication.getAuthorities());
+        return ResponseEntity.ok(service.getUserById(id, jwtUserDetails.userId(), authentication.getAuthorities().contains("ADMIN")));
     }
 }

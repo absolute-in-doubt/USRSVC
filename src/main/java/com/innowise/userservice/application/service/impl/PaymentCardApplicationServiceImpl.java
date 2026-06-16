@@ -47,7 +47,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
 
     @Override
     @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0})
-    public PaymentCardResponseDto getPaymentCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto getPaymentCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
             throw new AccessDeniedException("Users can only access their own cards");
@@ -78,7 +78,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
                     @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
-    public PaymentCardResponseDto deactivateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto deactivateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
             throw new AccessDeniedException("Users can only access their own cards");
@@ -106,7 +106,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
                     @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
-    public PaymentCardResponseDto activateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto activateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
             throw new AccessDeniedException("Users can only access their own cards");
@@ -120,7 +120,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     @Override
     @Profiling
     @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, keyArgumentIndexes = {0})
-    public List<PaymentCardResponseDto> getCardsByUserId(Long userId, Long authenticatedUserId, boolean isAdmin) {
+    public List<PaymentCardResponseDto> getCardsByUserId(Long userId, Long authenticatedUserId, boolean isAdmin) throws AccessDeniedException {
         if (!isAdmin && !userId.equals(authenticatedUserId)) {
             throw new AccessDeniedException("Users can only access their own cards");
         }
@@ -144,7 +144,7 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
                 @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
         }
     )
-    public void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException {
+    public void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
         if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
             throw new AccessDeniedException("Users can only access their own cards");

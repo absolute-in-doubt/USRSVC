@@ -2,6 +2,7 @@ package com.innowise.userservice.infrastructure.adapter.in;
 
 import com.innowise.userservice.application.dto.*;
 import com.innowise.userservice.application.service.PaymentCardApplicationService;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.domain.port.in.PaymentCardController;
 import com.innowise.userservice.infrastructure.security.model.JwtUserDetails;
@@ -29,7 +30,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     @Secured({"USER","ADMIN"})
     public ResponseEntity<PaymentCardResponseDto> getCardById(@PathVariable("paymentCardId") Long id,
             @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
-            Authentication authentication) throws PaymentCardNotFoundException {
+            Authentication authentication) throws PaymentCardNotFoundException, AccessDeniedException {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
         PaymentCardResponseDto card = service.getPaymentCardById(id, jwtUserDetails.userId(), isAdmin);
@@ -47,7 +48,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     @Secured({"USER","ADMIN"})
     public ResponseEntity<List<PaymentCardResponseDto>> getCardsByUserId(@PathVariable("userId") Long userId,
             @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
-            Authentication authentication) {
+            Authentication authentication) throws AccessDeniedException {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
         return ResponseEntity.ok(service.getCardsByUserId(userId, jwtUserDetails.userId(), isAdmin));
@@ -57,7 +58,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     @Secured({"USER","ADMIN"})
     public ResponseEntity<Void> deactivateCardById(@PathVariable("paymentCardId") Long id,
             @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
-            Authentication authentication) throws PaymentCardNotFoundException {
+            Authentication authentication) throws PaymentCardNotFoundException, AccessDeniedException {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
         service.deactivateCardById(id, jwtUserDetails.userId(), isAdmin);
@@ -68,7 +69,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     @Secured({"USER","ADMIN"})
     public ResponseEntity<Void> activateCardById(@PathVariable("paymentCardId") Long id,
             @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
-            Authentication authentication) throws PaymentCardNotFoundException {
+            Authentication authentication) throws PaymentCardNotFoundException, AccessDeniedException {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
         service.activateCardById(id, jwtUserDetails.userId(), isAdmin);
@@ -80,7 +81,7 @@ public class PaymentCardControllerImpl implements PaymentCardController {
     public ResponseEntity<MessageResponseDto> updateCard(@Valid @RequestBody UpdatePaymentCardDto updatePaymentCardDto,
                                                         @PathVariable("paymentCardId") Long id,
                                                         @AuthenticationPrincipal JwtUserDetails jwtUserDetails,
-                                                        Authentication authentication) throws PaymentCardNotFoundException {
+                                                        Authentication authentication) throws PaymentCardNotFoundException, AccessDeniedException {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ADMIN"));
         service.updateCard(updatePaymentCardDto, id, jwtUserDetails.userId(), isAdmin);

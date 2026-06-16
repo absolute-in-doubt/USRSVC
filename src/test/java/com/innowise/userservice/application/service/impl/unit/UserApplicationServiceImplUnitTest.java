@@ -7,6 +7,7 @@ import com.innowise.userservice.application.mapper.UserMapper;
 import com.innowise.userservice.application.service.impl.UserApplicationServiceImpl;
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.User;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.out.UserRepository;
@@ -244,7 +245,7 @@ public class UserApplicationServiceImplUnitTest {
     }
 
     @Test
-    void addCardByUserId_Success() throws UserNotFoundException, MaxPaymentCardsExceededException {
+    void addCardByUserId_Success() throws UserNotFoundException, MaxPaymentCardsExceededException, AccessDeniedException {
         Long userId = 1L;
         PaymentCard newCard = new PaymentCard();
         newCard.setId(3L);
@@ -478,7 +479,7 @@ public class UserApplicationServiceImplUnitTest {
     }
 
     @Test
-    void getUserById_Success() throws UserNotFoundException {
+    void getUserById_Success() throws UserNotFoundException, AccessDeniedException {
         Long userId = 1L;
         List<PaymentCardResponseDto> cardDtos = List.of(
             new PaymentCardResponseDto(1L, user.getId(), "1234567890123456", "John Doe", "2028-12-31", true)
