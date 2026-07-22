@@ -52,3 +52,10 @@ application:
         - /swagger-ui.html
         - /v3/api-docs/*
         - /v3/api-docs
+        - /actuator/health
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
