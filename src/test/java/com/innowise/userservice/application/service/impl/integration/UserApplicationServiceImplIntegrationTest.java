@@ -8,6 +8,7 @@ import com.innowise.userservice.domain.model.*;
 import com.innowise.userservice.domain.model.exception.*;
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
 import com.innowise.userservice.domain.port.out.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 @Import(TestcontainersConfiguration.class)
 @Testcontainers
 @SpringBootTest
@@ -53,13 +55,14 @@ class UserApplicationServiceImplIntegrationTest {
         userRepository.deleteAll();
 
         user = new User();
+        user.setId(1L);
         user.setFirstName("firstName");
         user.setLastName("lastName");
         user.setEmail("email");
         user.setActive(true);
 
         userResponseDto = new UserResponseDto(1L, "firstName", "lastName", "email", true);
-        createUserDto = new CreateUserDto("firstName", "lastName", LocalDate.of(2005, 1, 1), "email");
+        createUserDto = new CreateUserDto(2L, "firstName", "lastName", LocalDate.of(2005, 1, 1), "email");
         updateUserDto = new UpdateUserDto("newFirstName", "newLastName", "email", true);
         createPaymentCardDto = new CreatePaymentCardDto("1234567887654321", "John Doe", LocalDate.of(2028, 1, 1));
 
@@ -82,6 +85,37 @@ class UserApplicationServiceImplIntegrationTest {
     }
 
     @Test
+    void createUser_DuplicateRequests_ReturnSameOutput() {
+        CreateUserDto dto = new CreateUserDto(
+                3L,
+                "Duplicate",
+                "User",
+                     LocalDate.of(2000, 1, 1),
+                     "duplicate@example.com"
+                     );
+
+        UserResponseDto result1 = service.createUser(dto);
+
+        CreateUserDto duplicateDto = new CreateUserDto(
+                3L,
+                "Duplicate",
+                "User",
+                LocalDate.of(2000, 1, 1),
+                "duplicate@example.com"
+        );
+        UserResponseDto result2 = service.createUser(duplicateDto);
+
+        assertEquals(result1.firstName(), result2.firstName());
+        assertEquals(result1.lastName(), result2.lastName());
+        assertEquals(result1.active(), result2.active());
+        log.trace("Id's result1: {}, result2: {}", result1.id(), result2.id());
+        assertEquals(result1.id(), result2.id());
+        assertEquals(result1.email(), result2.email());
+    }
+
+
+
+@Test
     void updateUser() throws UserNotFoundException {
         user = userRepository.save(user);
         service.updateUser(updateUserDto, user.getId());
@@ -93,9 +127,9 @@ class UserApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void addCardByUserId() throws UserNotFoundException, MaxPaymentCardsExceededException {
+    void addCardByUserId() throws UserNotFoundException, MaxPaymentCardsExceededException, AccessDeniedException {
         user = userRepository.save(user);
-        service.addCardByUserId(createPaymentCardDto, user.getId());
+        service.addCardByUserId(createPaymentCardDto, user.getId(), user.getId(), true);
         user = userRepository.findById(user.getId()).orElseThrow();
         List<PaymentCard> pcs = pcRepo.findByUserId(user.getId());
         PaymentCard paymentCardResult = pcs.getFirst();
@@ -133,9 +167,9 @@ class UserApplicationServiceImplIntegrationTest {
     }
 
     @Test
-    void getUserById() throws UserNotFoundException {
+    void getUserById() throws UserNotFoundException, AccessDeniedException {
         user = userRepository.save(user);
-        FullUserResponseDto result = service.getUserById(user.getId());
+        FullUserResponseDto result = service.getUserById(user.getId(), user.getId(), true);
         assertEquals(result.active(), user.isActive());
         assertEquals(result.firstName(), user.getFirstName());
         assertEquals(result.lastName(), user.getLastName());

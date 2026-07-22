@@ -43,3 +43,20 @@ application:
     remote:
       stale-after-min: 10
       ttl-min: 15
+  security:
+    jwksUrl: ${JWKS_URL}
+    paths:
+      publicPaths:
+        - /v3/api-docs.yaml
+        - /swagger-ui/*
+        - /swagger-ui.html
+        - /v3/api-docs/*
+        - /v3/api-docs
+        - /actuator/health
+        - /actuator/health/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

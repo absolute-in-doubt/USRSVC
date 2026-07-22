@@ -13,6 +13,7 @@ public interface PaymentCardMapper {
     @Mapping(target = "active", constant = "true")
     PaymentCard toEntity(CreatePaymentCardDto createPaymentCardDto);
 
+    @Mapping(target = "userId", source = "paymentCard.user.id")
     PaymentCardResponseDto toDto(PaymentCard paymentCard);
 
     PaymentCard updateEntity(UpdatePaymentCardDto updatedPaymentCardDto, @MappingTarget PaymentCard paymentCard);

@@ -8,6 +8,7 @@ import com.innowise.userservice.application.mapper.PageMapper;
 import com.innowise.userservice.application.mapper.PaymentCardMapper;
 import com.innowise.userservice.application.service.PaymentCardApplicationService;
 import com.innowise.userservice.domain.model.PaymentCard;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.FailedToPerformOperationException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.domain.port.out.PaymentCardRepository;
@@ -46,8 +47,11 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
 
     @Override
     @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keyArgumentIndexes = {0})
-    public PaymentCardResponseDto getPaymentCardById(Long id) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto getPaymentCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
+        if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Users can only access their own cards");
+        }
         return paymentCardMapper.toDto(paymentCard);
     }
 
@@ -60,8 +64,8 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     @Override
     @Transactional
     @Retryable(
-            noRetryFor = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class},
-            notRecoverable = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class},
+            noRetryFor = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class, AccessDeniedException.class},
+            notRecoverable = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class, AccessDeniedException.class},
             retryFor = {OptimisticLockException.class, TransientDataAccessException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
@@ -74,8 +78,11 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
                     @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
-    public PaymentCardResponseDto deactivateCardById(Long id) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto deactivateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
+        if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Users can only access their own cards");
+        }
         entityManager.lock(paymentCard.getUser(), LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         paymentCardRepository.setActiveById(id, false);
         paymentCard.setActive(false);
@@ -85,8 +92,8 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     @Override
     @Transactional
     @Retryable(
-            noRetryFor = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class},
-            notRecoverable = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class},
+            noRetryFor = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class, AccessDeniedException.class},
+            notRecoverable = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class, AccessDeniedException.class},
             retryFor = {OptimisticLockException.class, TransientDataAccessException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
@@ -99,8 +106,11 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
                     @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
             }
     )
-    public PaymentCardResponseDto activateCardById(Long id) throws PaymentCardNotFoundException {
+    public PaymentCardResponseDto activateCardById(Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
+        if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Users can only access their own cards");
+        }
         entityManager.lock(paymentCard.getUser(), LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         paymentCardRepository.setActiveById(id, true);
         paymentCard.setActive(true);
@@ -110,15 +120,18 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
     @Override
     @Profiling
     @CustomCacheable(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, keyArgumentIndexes = {0})
-    public List<PaymentCardResponseDto> getCardsByUserId(Long userId) {
+    public List<PaymentCardResponseDto> getCardsByUserId(Long userId, Long authenticatedUserId, boolean isAdmin) throws AccessDeniedException {
+        if (!isAdmin && !userId.equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Users can only access their own cards");
+        }
         return paymentCardMapper.toDtoList(paymentCardRepository.findByUserId(userId));
     }
 
     @Override
     @Transactional
     @Retryable(
-            noRetryFor = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class},
-            notRecoverable = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class},
+            noRetryFor = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class, AccessDeniedException.class},
+            notRecoverable = {DataIntegrityViolationException.class, PaymentCardNotFoundException.class, AccessDeniedException.class},
             retryFor = {OptimisticLockException.class, TransientDataAccessException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
@@ -131,8 +144,11 @@ public class PaymentCardApplicationServiceImpl implements PaymentCardApplication
                 @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
         }
     )
-    public void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id) throws PaymentCardNotFoundException {
+    public void updateCard(UpdatePaymentCardDto updatePaymentCardDto, Long id, Long authenticatedUserId, boolean isAdmin) throws PaymentCardNotFoundException, AccessDeniedException {
         PaymentCard paymentCard = paymentCardRepository.findById(id).orElseThrow(() -> new PaymentCardNotFoundException(id));
+        if (!isAdmin && !paymentCard.getUser().getId().equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Users can only access their own cards");
+        }
         entityManager.lock(paymentCard.getUser(), LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         paymentCardMapper.updateEntity(updatePaymentCardDto, paymentCard);
     }

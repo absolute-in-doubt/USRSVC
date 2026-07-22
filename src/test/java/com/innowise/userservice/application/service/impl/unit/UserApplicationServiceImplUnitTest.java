@@ -7,10 +7,10 @@ import com.innowise.userservice.application.mapper.UserMapper;
 import com.innowise.userservice.application.service.impl.UserApplicationServiceImpl;
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.User;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
 import com.innowise.userservice.domain.port.out.UserRepository;
-import com.innowise.userservice.infrastructure.persistence.specification.UserSpecification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -127,6 +127,7 @@ public class UserApplicationServiceImplUnitTest {
         );
 
         createUserDto = new CreateUserDto(
+                1L,
                 "John",
                 "Doe",
                 LocalDate.of(1990, 1, 1),
@@ -244,10 +245,10 @@ public class UserApplicationServiceImplUnitTest {
     }
 
     @Test
-    void addCardByUserId_Success() throws UserNotFoundException, MaxPaymentCardsExceededException {
+    void addCardByUserId_Success() throws UserNotFoundException, MaxPaymentCardsExceededException, AccessDeniedException {
         Long userId = 1L;
         PaymentCard newCard = new PaymentCard();
-        newCard.setId(2L);
+        newCard.setId(3L);
         newCard.setCardNumber("9876543210987654");
         newCard.setHolder("Jane Smith");
         newCard.setExpirationDate(LocalDate.of(2029, 11, 30));
@@ -262,11 +263,12 @@ public class UserApplicationServiceImplUnitTest {
         updatedUser.setActive(true);
         updatedUser.setCards(List.of(paymentCards.get(0), newCard));
 
-        UserResponseDto updatedResponseDto = new UserResponseDto(
-                userId,
-                "John",
-                "Doe",
-                "john.doe@example.com",
+        PaymentCardResponseDto updatedResponseDto = new PaymentCardResponseDto(
+                2L,
+                user.getId(),
+                "9876543210987654",
+                "Jane Smith",
+                LocalDate.of(2029, 11, 30).toString(),
                 true
         );
 
@@ -274,22 +276,24 @@ public class UserApplicationServiceImplUnitTest {
                 .thenReturn(Optional.of(user));
         Mockito.when(paymentCardMapper.toEntity(Mockito.eq(createPaymentCardDto)))
                 .thenReturn(newCard);
-        Mockito.when(userRepository.save(Mockito.any(User.class)))
+        Mockito.when(userRepository.saveAndFlush(Mockito.any(User.class)))
                 .thenReturn(updatedUser);
-        Mockito.when(userMapper.toDto(Mockito.any(User.class)))
+        Mockito.when(paymentCardMapper.toDto(Mockito.any(PaymentCard.class)))
                 .thenReturn(updatedResponseDto);
 
-        UserResponseDto result = service.addCardByUserId(createPaymentCardDto, userId);
+        PaymentCardResponseDto result = service.addCardByUserId(createPaymentCardDto, userId, user.getId(), true);
 
         assertNotNull(result);
         assertEquals(updatedResponseDto.id(), result.id());
-        assertEquals(updatedResponseDto.firstName(), result.firstName());
-        assertEquals(updatedResponseDto.lastName(), result.lastName());
+        assertEquals(updatedResponseDto.userId(), result.userId());
+        assertEquals(updatedResponseDto.cardNumber(), result.cardNumber());
+        assertEquals(updatedResponseDto.holder(), result.holder());
+        assertEquals(updatedResponseDto.active(), result.active());
 
         Mockito.verify(userRepository).findById(Mockito.eq(userId));
         Mockito.verify(paymentCardMapper).toEntity(Mockito.eq(createPaymentCardDto));
-        Mockito.verify(userRepository).save(Mockito.any(User.class));
-        Mockito.verify(userMapper).toDto(Mockito.any(User.class));
+        Mockito.verify(userRepository).saveAndFlush(Mockito.any(User.class));
+        Mockito.verify(paymentCardMapper).toDto(Mockito.any(PaymentCard.class));
     }
 
     @Test
@@ -298,7 +302,7 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> 
-            service.addCardByUserId(createPaymentCardDto, userId));
+            service.addCardByUserId(createPaymentCardDto, userId, userId, true));
 
         Mockito.verify(userRepository).findById(userId);
         Mockito.verify(paymentCardMapper, Mockito.never()).toEntity(any());
@@ -331,7 +335,7 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(paymentCardMapper.toEntity(createPaymentCardDto)).thenReturn(newCard);
 
         assertThrows(MaxPaymentCardsExceededException.class, () -> 
-            service.addCardByUserId(createPaymentCardDto, user2.getId()));
+            service.addCardByUserId(createPaymentCardDto, user2.getId(), user2.getId(), true));
 
         Mockito.verify(userRepository).findById(userId);
         Mockito.verify(paymentCardMapper).toEntity(createPaymentCardDto);
@@ -475,10 +479,10 @@ public class UserApplicationServiceImplUnitTest {
     }
 
     @Test
-    void getUserById_Success() throws UserNotFoundException {
+    void getUserById_Success() throws UserNotFoundException, AccessDeniedException {
         Long userId = 1L;
         List<PaymentCardResponseDto> cardDtos = List.of(
-            new PaymentCardResponseDto(1L, "1234567890123456", "John Doe", "2028-12-31", true)
+            new PaymentCardResponseDto(1L, user.getId(), "1234567890123456", "John Doe", "2028-12-31", true)
         );
 
         Mockito.when(userRepository.findByIdWithCards(userId))
@@ -488,7 +492,7 @@ public class UserApplicationServiceImplUnitTest {
         Mockito.when(userMapper.toFullDto(user, cardDtos))
                 .thenReturn(fullUserResponseDto);
 
-        FullUserResponseDto result = service.getUserById(userId);
+        FullUserResponseDto result = service.getUserById(userId, user.getId(), true);
 
         assertNotNull(result);
         assertEquals(fullUserResponseDto.id(), result.id());
@@ -508,7 +512,7 @@ public class UserApplicationServiceImplUnitTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> 
-            service.getUserById(userId));
+            service.getUserById(userId, userId, true));
 
         Mockito.verify(userRepository).findByIdWithCards(userId);
         Mockito.verify(paymentCardMapper, Mockito.never()).toDtoList(any());

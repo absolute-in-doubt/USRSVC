@@ -1,5 +1,6 @@
 package com.innowise.userservice.infrastructure.cache.postprocessor;
 
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.PaymentCardNotFoundException;
 import com.innowise.userservice.infrastructure.cache.TwoLevelCacheService;
 import com.innowise.userservice.infrastructure.cache.annotation.CustomCacheable;
@@ -60,9 +61,8 @@ public class CustomCacheableBeanPostProcessor implements BeanPostProcessor {
                                      () -> {
                                          try {
                                              return invocation.proceed();
-                                         } catch (PaymentCardNotFoundException e){
-                                             //rethrowing the exception for it to be correctly processed
-                                             throw e;
+                                         } catch (PaymentCardNotFoundException | AccessDeniedException e){
+                                              throw e;
                                          }
                                          catch (Throwable e) {
                                              Logger log = LoggerFactory.getLogger(beanClass);

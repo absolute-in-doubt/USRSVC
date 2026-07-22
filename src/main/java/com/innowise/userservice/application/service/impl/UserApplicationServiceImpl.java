@@ -7,6 +7,7 @@ import com.innowise.userservice.application.mapper.UserMapper;
 import com.innowise.userservice.application.service.UserApplicationService;
 import com.innowise.userservice.domain.model.PaymentCard;
 import com.innowise.userservice.domain.model.User;
+import com.innowise.userservice.domain.model.exception.AccessDeniedException;
 import com.innowise.userservice.domain.model.exception.FailedToPerformOperationException;
 import com.innowise.userservice.domain.model.exception.MaxPaymentCardsExceededException;
 import com.innowise.userservice.domain.model.exception.UserNotFoundException;
@@ -29,6 +30,9 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -49,7 +53,7 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
     )
     public UserResponseDto createUser(CreateUserDto createUserDto) {
-        User user = userRepository.save(userMapper.toEntity(createUserDto));
+        User user = userRepository.findById(createUserDto.userId()).orElseGet(() -> userRepository.save(userMapper.toEntity(createUserDto)));
         return userMapper.toDto(user);
     }
 
@@ -79,8 +83,8 @@ public class UserApplicationServiceImpl implements UserApplicationService {
     @Override
     @Transactional
     @Retryable(
-            noRetryFor = {DataIntegrityViolationException.class, UserNotFoundException.class, MaxPaymentCardsExceededException.class},
-            notRecoverable = {DataIntegrityViolationException.class, UserNotFoundException.class, MaxPaymentCardsExceededException.class},
+            noRetryFor = {DataIntegrityViolationException.class, UserNotFoundException.class, MaxPaymentCardsExceededException.class, AccessDeniedException.class},
+            notRecoverable = {DataIntegrityViolationException.class, UserNotFoundException.class, MaxPaymentCardsExceededException.class, AccessDeniedException.class},
             retryFor = {OptimisticLockException.class, TransientDataAccessException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 100, multiplier = 1.3)
@@ -89,17 +93,24 @@ public class UserApplicationServiceImpl implements UserApplicationService {
             evict = {
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_FILTERED_AND_PAGED_CACHE, allEntries = true),
                     @CustomCacheEvict(cacheName = CacheConfig.PAYMENT_CARDS_VIA_USER_ID_CACHE, allEntries = true),
-                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true)
+                    @CustomCacheEvict(cacheName = CacheConfig.FULL_USERS_CACHE, allEntries = true),
+                    @CustomCacheEvict(cacheName = CacheConfig.USERS_CACHE, keyArgumentIndexes = {1})
             },
-            put = @CustomCachePut(cacheName = CacheConfig.USERS_CACHE, keySpEL = "#result.id")
+            put = @CustomCachePut(cacheName = CacheConfig.PAYMENT_CARDS_CACHE, keySpEL = "#result.id")
     )
-    public UserResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId) throws UserNotFoundException, MaxPaymentCardsExceededException {
+    public PaymentCardResponseDto addCardByUserId(CreatePaymentCardDto createPaymentCardDto, Long userId, Long authenticatedUserId, boolean isAdminOrService) throws UserNotFoundException, MaxPaymentCardsExceededException, AccessDeniedException {
+        if (!isAdminOrService && !userId.equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Users can only access their own resources");
+        }
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         PaymentCard card = paymentCardMapper.toEntity(createPaymentCardDto);
-        log.debug("Mapped payment card in addCardById: {}", card);
         user.addCard(card);
-        userRepository.save(user);
-        return userMapper.toDto(user);
+        user = userRepository.saveAndFlush(user);
+        PaymentCard savedCard = user.getCards()
+                .stream()
+                .max(Comparator.comparing(PaymentCard::getId))
+                .orElseThrow();
+        return paymentCardMapper.toDto(savedCard);
     }
 
     @Override
@@ -156,7 +167,11 @@ public class UserApplicationServiceImpl implements UserApplicationService {
 
     @Override
     @CustomCacheable(cacheName = CacheConfig.FULL_USERS_CACHE, keyArgumentIndexes = {0})
-    public FullUserResponseDto getUserById(Long userId) throws UserNotFoundException {
+    public FullUserResponseDto getUserById(Long userId, Long authenticatedUserId, boolean isAdmin) throws UserNotFoundException, AccessDeniedException {
+        log.trace("Is admin: {}", isAdmin);
+        if (!isAdmin && !userId.equals(authenticatedUserId)) {
+            throw new AccessDeniedException("Users can only access their own resources");
+        }
        User user = userRepository.findByIdWithCards(userId).orElseThrow(() -> new UserNotFoundException(userId));
         return userMapper.toFullDto(user, paymentCardMapper.toDtoList(user.getCards()));
     }
